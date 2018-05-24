@@ -2,18 +2,50 @@
     Hash Table implementation
 */
 
+#include <fstream>
 #include "HashTable.h"
+#include "ClassificationContainer.h"
 
+/*
+    Initialization procedure
+    - Set hash table size
+    - Allocate empty lists
+*/
 HashTable::HashTable()
 {
+    /* allocate with default size */
+    hashTable = new std::list<WordContainer*> [HASHTABLE_DEFAULT_SIZE];
+    tableSize = HASHTABLE_DEFAULT_SIZE;
+    collisions = 0;
+    listLimitFlag = false;
+    rehashCount = 0;
+
+    std::cout << "HASHTABLE: intializing with default size of " << HASHTABLE_DEFAULT_SIZE << "." << std::endl;
 }
 
 HashTable::HashTable(std::size_t elements)
 {
+    std::size_t calculatedSize = std::ceil(TABLESIZE_FACTOR * elements);
+    tableSize = calculatedSize;
+    hashTable = new std::list<WordContainer*> [calculatedSize];
+    collisions = 0;
+    listLimitFlag = false;
+    rehashCount = 0;
+
+    std::cout << "HASHTABLE: intializing with given size of " << calculatedSize << "." << std::endl;
 }
 
-HashTable::~HashTable(){
+HashTable::~HashTable()
+{
+    /* deallocate the list */
+    delete[] hashTable;
+
+    std::cout << "HASHTABLE: destroying." << std::endl;
 }
+
+/*
+    Math related
+*/
 
 bool HashTable::isPrime(unsigned long number)
 {
@@ -46,8 +78,8 @@ unsigned long HashTable::nextPrime(unsigned long a)
 void HashTable::rehash()
 {
     std::size_t newSize = nextPrime(std::ceil(tableSize * REHASH_FACTOR));
-    std::list<std::string> *newHashTable = new std::list<std::string> [newSize];
-    std::list<std::string>::iterator it;
+    std::list<WordContainer*> *newHashTable = new std::list<WordContainer*> [newSize];
+    std::list<WordContainer*>::iterator it;
 
     collisions = 0;
 
@@ -59,7 +91,7 @@ void HashTable::rehash()
             for(it = hashTable[i].begin(); it != hashTable[i].end(); it++)
             {
                 /* pushed old elements into the new hash table */
-                auto key = hash(stringToInteger(*it), newSize);
+                auto key = hash(stringToInteger((*it)->word), newSize);
                 if(!newHashTable[key].empty()) collisions++;
                 newHashTable[key].push_front(*it);
             }
@@ -73,6 +105,22 @@ void HashTable::rehash()
     listLimitFlag = false;
     
     rehashCount++;
+}
+
+WordContainer* HashTable::GetContainer(std::list<WordContainer*>& contList, std::string word)
+{
+    std::list<WordContainer*>::iterator it;
+    for(it = contList.begin(); it != contList.end(); it++)
+    {
+        if((*it)->word == word)
+        {
+            /* word already exists in the hash table */
+            return *it;
+        }
+    }
+
+    /* word does not exist */
+    return nullptr;
 }
 
 /* returns the ratio (occupied slots) / (total slots) */
@@ -92,11 +140,11 @@ float HashTable::occupationRatio()
 bool HashTable::shouldExpand()
 {
     if(occupationRatio() >= MAX_OCCUPANCY_RATIO) return true;
-    else if(listLimitFlag) return true;
+    else if(listLimitFlag) return false;
     else return false;
 }
 
-/* converts a string into a 32-bit integer */
+/* converts a string into an integer */
 unsigned long long HashTable::stringToInteger(std::string name)
 {
     unsigned long long stringKey = 0,
@@ -127,101 +175,145 @@ unsigned long HashTable::hash(unsigned long long key, int modulo)
 
 /* Hash Table Operations */
 /* inserts a string into the hash table */
-void HashTable::push(std::string name)
+void HashTable::push(std::string word, float commentScore, std::size_t commentID, std::size_t wordPos)
 {
-    if(name.empty()){
+    if(!word.size())
+    {
         std::cerr << "ERROR: Can't insert an empty string into the Hash Table." << std::endl;
-    } else {
-        unsigned long key = hash(stringToInteger(name));
+    }
+    else
+    {
+        unsigned long key = hash(stringToInteger(word));
     
         /* check if there is a collision */
         if(!hashTable[key].empty())
             collisions++;
-            
-        hashTable[key].emplace_front(name);
+
+        /* Check if word exists already */
+        WordContainer* lookup = GetContainer(hashTable[key], word);
+        if(lookup == nullptr)
+        {
+            /* no entry so far, make a new one */
+            lookup = new WordContainer(word);
+
+            /* inserts into hash table */
+            hashTable[key].emplace_front(lookup);
+        }
+        
+        /* push new word ocurrence */
+        (lookup->classification)->AddOcurrence(commentScore);
+        (lookup->invFile)->AddWordOcurrence(commentID, wordPos, commentScore);
+
+
+        /* checks expansion conditions */
         if(hashTable[key].size() > MAX_CHAINED_OCCUPANCY) listLimitFlag = true;
 
-        if(shouldExpand()){
+        if(shouldExpand())
+        {
             rehash(); 
             std::cout << "Hash Table will be expanded!" << std::endl;
         }
     }
 }
 
-/* returns a name from the hash table */
-/* returns an empty string if it doesn't exist */
-std::string HashTable::search(std::string name)
+WordContainer* HashTable::search(std::string word)
 {
-    if(name.empty())
+    if(word.empty())
     {
-        std::cerr << "ERROR: Can't search for an empty string" << std::endl;
-        return "";
+        std::cerr << "HASHTABLE ERROR: Can't search for an empty string" << std::endl;
+        return nullptr;
     }
     else
     {
-        unsigned long key = hash(stringToInteger(name));
-        std::list<std::string>::iterator list_lookup;
+        unsigned long key = hash(stringToInteger(word));
 
         if(hashTable[key].empty()){
-            std::cerr << "ERROR: " << name << " was not found in the Hash Table." << std::endl;
+            std::cerr << "HASHTABLE ERROR: " << word << " was not found in the Hash Table." << std::endl;
+            return nullptr;
         }
         else
         {
-            list_lookup = std::find(hashTable[key].begin(), hashTable[key].end(), name);
+            std::list<WordContainer*>::iterator it;
+            for(it = hashTable[key].begin(); it != hashTable[key].end(); it++)
+            {
+                if((*it)->word == word)
+                {
+                    return (*it);
+                }
+            }
 
-            /* check if element was found */
-            if(list_lookup != hashTable[key].end())
-            {
-                return (*list_lookup);
-            }
-            else
-            {
-                std::cerr << "ERROR: " << name << " was not found in the Hash table." << std::endl;
-            }
+            std::cerr << "ERROR: " << word << " was not found in the Hash table." << std::endl;
+            return nullptr;
         }
     }
 }
 
 /* returns a name from the hash table with the operator [] */
-std::string HashTable::operator[](std::string name)
+WordContainer* HashTable::operator[](std::string name)
 {
-    if(name.empty()
-    {
-        std::cerr << "ERROR: Can't search for an empty string" << std::endl;
-        return "";
-    }
-    else
-    {
-        unsigned long key = hash(stringToInteger(name));
-        std::list<std::string>::iterator list_lookup;
+}
 
-        if(hashTable[key].empty())
-        {
-            std::cerr << "ERROR: " << name << " was not found in the Hash Table." << std::endl;
-        }
-        else
-        {
-            list_lookup = std::find(hashTable[key].begin(), hashTable[key].end(), name);
+void HashTable::LoadFromFile(const char* filename)
+{
+    std::ifstream fp;
+    fp.open(filename);
+    bool running = true;
 
-            /* check if element was found */
-            if(list_lookup != hashTable[key].end())
+    if(fp.is_open())
+    {
+        std::string line;
+        std::string word;
+        int commentID = 0;
+        std::getline(fp, line);
+        while(running)
+        {
+            int commentScore;
+            int wordPos;
+
+            std::size_t begin = 0;
+            std::size_t i = 0;
+
+            /* get comment score (first 'word') */
+            while(line[i] != ' ') i++;
+
+            std::string aux = line.substr(begin, i);
+            if(!aux.empty())
+                commentScore = std::stoi(aux);
+
+
+            i++; /* beginning of next word */
+            begin = i;
+            while(i < line.size())
             {
-                return (*list_lookup);
+                while(line[i] != ' ') i++;
+
+                word = line.substr(begin, i - begin);
+                wordPos = begin;
+
+                /* push into hash table */
+                push(word, commentScore, commentID, wordPos);
+                std::cout << "Inserting " << word << std::endl;
+
+                i++; /* beginning of next word */
+                begin = i;
             }
+
+            if(fp.eof()) running = false;
             else
             {
-                std::cerr << "ERROR: " << name << " was not found in the Hash table." << std::endl;
-                return "";
+                std::getline(fp, line);
+                commentID++;
             }
         }
+
+        fp.close();
     }
 }
 
 void HashTable::printReport()
 {
     std::cout << "====================================" << std::endl;
-    std::cout << "Details about the Hash Table: " << std::endl;
-    std::cout << "Table size:\t" << tableSize << std::endl;
+    std::cout << "Details about the Hash Table: " << std::endl; std::cout << "Table size:\t" << tableSize << std::endl;
     std::cout << "Occupancy rate:\t" << occupationRatio() << std::endl;
     std::cout << "Collisions:\t" << collisions << std::endl;
     std::cout << "Rehash's:\t" << rehashCount << std::endl;
@@ -243,10 +335,10 @@ void HashTable::printHashTable()
         if(hashTable[i].empty()) std::cout << "NULL";
         else
         {
-            std::list<std::string>::iterator it;
+            std::list<WordContainer*>::iterator it;
             for(it = hashTable[i].begin(); it != hashTable[i].end(); it++)
             {
-                std::cout << (*it) << " -> "; 
+                std::cout << (*it)->word << " -> "; 
             }
         }
         std::cout << std::endl;

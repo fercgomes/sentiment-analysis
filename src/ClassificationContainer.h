@@ -4,11 +4,21 @@
     * Its place on an inverted file
 */
 
+#pragma once
+
 #include "WordClassification.h"
+#include "InvertedFile.h"
+#include <string>
 
-struct WordContainer {
+class WordContainer
+{
+
+public:
+    std::string word;
     WordClassification* classification;
-    // InvertedFile* invFile;
-}
+    InvertedFileEntry* invFile;
 
-typedef struct WordContainer WContainer;
+    WordContainer(std::string word);
+    ~WordContainer();
+
+};

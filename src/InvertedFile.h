@@ -1,25 +1,32 @@
 #pragma once
 
 #include <list>
-#include <vector>
+#include <string>
 #include "WordClassification.h"
 
-struct InvertedFileEntry
-{
-    std::size_t wordPos;
-    float* wordScore;
-};
-
-typedef struct InvertedFileEntry InvFileEntry;
-
-class InvertedFile
+class CommentEntry
 {
 public:
-    std::vector< std::list<InvFileEntry> > invFile;
+    std::size_t commentID;
+    float commentScore;
+    std::list<std::size_t> ocurrences;
 
-    InvertedFile();
-    ~InvertedFile();
+    CommentEntry(std::size_t id, float score)
+    {
+        commentScore = score;
+        commentID = id;
+    }    
+};
 
-private:
+class InvertedFileEntry
+{
+public:
+    std::list<CommentEntry> invFile;
+    std::string word;
 
+    InvertedFileEntry(std::string w);
+    ~InvertedFileEntry();
+
+    void AddWordOcurrence(std::size_t commentID, std::size_t wordPos, float commentScore);
+    void PrintOcurrences();
 };

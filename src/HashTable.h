@@ -6,6 +6,7 @@
 #include <string>
 #include <algorithm>
 #include <cmath>
+#include <memory>
 #include <fstream>
 #include "ClassificationContainer.h"
 
@@ -32,23 +33,23 @@ class HashTable {
         bool isPrime(unsigned long);
         void rehash();
 
-    public:
-        std::list< WContainer >* hashTable;
+        WordContainer* GetContainer(std::list<WordContainer*>& contList, std::string word);
 
-        /* initializes with no elements, fixed default size */
+    public:
+        std::list<WordContainer*>* hashTable;
+
         HashTable();
-        /* initializes with a given size */
         HashTable(std::size_t);
 
         ~HashTable();
-        
-        /* regular operations on hash tables */
-        void push(std::string);
-        std::string search(std::string);
+
+        void push(std::string, float commentScore, std::size_t commentID, std::size_t wordPos);
+        WordContainer* search(std::string);
         void pop(std::string);
 
-        /* alternate operations, with overloading */
-        std::string operator[](std::string);        
+        WordContainer* operator[](std::string);        
+
+        void LoadFromFile(const char* filename);
 
         void printReport();
         void printHashTable();

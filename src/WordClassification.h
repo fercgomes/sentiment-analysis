@@ -1,7 +1,9 @@
+#pragma once
+
 class WordClassification
 {
 public:
-    float score;
+    float averageScore;
     unsigned int ocurrences;
     /* TODO: standard deviation */
 

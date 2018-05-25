@@ -8,7 +8,7 @@
 #include <cmath>
 #include <memory>
 #include <fstream>
-#include "ClassificationContainer.h"
+#include "WordEntry.h"
 
 #define HASHTABLE_DEFAULT_SIZE  10
 #define MAX_OCCUPANCY_RATIO     0.8
@@ -20,7 +20,7 @@ class HashTable {
     private:
         unsigned int collisions;
         bool listLimitFlag;
-        int rehashCount;
+        int expansionCount;
 
         std::size_t tableSize;
 
@@ -33,24 +33,21 @@ class HashTable {
         bool isPrime(unsigned long);
         void rehash();
 
-        WordContainer* GetContainer(std::list<WordContainer*>& contList, std::string word);
-
     public:
-        std::list<WordContainer*>* hashTable;
+        std::list<WordEntry*> *hashTable;
 
         HashTable();
         HashTable(std::size_t);
-
         ~HashTable();
 
-        void push(std::string, float commentScore, std::size_t commentID, std::size_t wordPos);
-        WordContainer* search(std::string);
+        std::size_t size();
+
+        void push(std::string word, float commentScore, int commentID, int wordPos);
+        WordEntry* search(std::string);
+        WordEntry* operator[](std::string);        
         void pop(std::string);
 
-        WordContainer* operator[](std::string);        
-
-        void LoadFromFile(const char* filename);
-
+        void expand(std::size_t baseSize);
         void printReport();
         void printHashTable();
 };

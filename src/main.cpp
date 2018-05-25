@@ -7,18 +7,24 @@
 */
 
 #include <iostream>
-#include "HashTable.h"
-#include "ClassificationContainer.h"
-#include "InvertedFile.h"
-#include "WordClassification.h"
+#include "SentimentAnalyzer.h"
 
 int main()
 {
-    HashTable test(1000);
+    SentimentAnalyzer teste;
+    teste.ImportFile("grande.txt");
+    std::cout << "Done importing." << std::endl;
 
-    test.LoadFromFile("test.txt");
-    test.printHashTable();
+    //teste.PrintWords();
+
+    std::string comment;
+    std::getline(std::cin, comment);
+    while(!comment.empty())
+    {
+        auto res = teste.GetCommentScore(comment);
+        std::cout << "Resulting score: " << res << std::endl;
+        std::getline(std::cin, comment);
+    }
     
-
     return 0;
 }

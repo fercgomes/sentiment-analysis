@@ -1,6 +1,7 @@
 #pragma once
 #include <list>
 #include <string>
+#include <iostream>
 
 class CommentEntry
 {
@@ -28,6 +29,8 @@ public:
     void AddOcurrence(int commentID, int commentOffset, float commentScore);
     void UpdateSandardDeviation();
     void PrintOcurrences();
+
+    friend std::ostream& operator<<(std::ostream& os, const WordEntry* wD);
 
 private:
 };

@@ -67,7 +67,7 @@ void WordEntry::UpdateSandardDeviation()
 {
     double sum = 0;
 
-    if(!invertedFile.empty())
+    if(invertedFile.size() > 1)
     {
         /* iterate over each individual score (comment) */
         std::list<CommentEntry>::iterator it;
@@ -106,4 +106,13 @@ void WordEntry::PrintOcurrences()
 
         std::cout << std::endl;
     }
+}
+
+std::ostream& operator<<(std::ostream& os, const WordEntry* dt)
+{
+    os << "Entry for " << dt->word << ":" << std::endl;
+    os << "Average word score:\t" << dt->averageScore << std::endl;
+    os << "Standard deviation:\t" << dt->standardDeviation << std::endl;
+    os << "Ocurrences:\t\t" << dt->count << std::endl;
+    return os;
 }

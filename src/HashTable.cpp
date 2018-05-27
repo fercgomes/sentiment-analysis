@@ -91,7 +91,7 @@ void HashTable::expand(std::size_t baseSize)
     collisions = 0;
 
     /* iterates over the elements in the old hash table */
-    for(int i = 0; i < tableSize; i++)
+    for(std::size_t i = 0; i < tableSize; i++)
     {
         if(!hashTable[i].empty())
         {
@@ -124,7 +124,7 @@ void HashTable::rehash()
 float HashTable::occupationRatio()
 {
     float occupiedSlots = 0;
-    for(int i = 0; i < tableSize; i++)
+    for(std::size_t i = 0; i < tableSize; i++)
     {
         if(!hashTable[i].empty()) occupiedSlots++;
     }
@@ -263,7 +263,7 @@ void HashTable::printReport()
 void HashTable::printHashTable()
 {
     std::cout << "Hash Table (showing linked lists): " << std::endl;
-    for(int i = 0; i < tableSize; i++)
+    for(std::size_t i = 0; i < tableSize; i++)
     {
         std::cout << i << ":\t";
         if(hashTable[i].empty()) std::cout << "NULL";

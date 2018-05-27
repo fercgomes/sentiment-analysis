@@ -5,20 +5,38 @@
 SentimentAnalyzer::SentimentAnalyzer()
 {
     wordEntries = new HashTable();
+    preffixes = new TrieTree;
+
+    /* set flags */
+    convertLowerCase = false;
+    filterNonAlpha = false;
+    removeStopWords = false;
 }
 
 SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
 {
     wordEntries = new HashTable(size);
+    preffixes = new TrieTree;
+
+    /* set flags */
+    convertLowerCase = false;
+    filterNonAlpha = false;
+    removeStopWords = false;
 }
 
 SentimentAnalyzer::~SentimentAnalyzer()
 {
     delete wordEntries;
+    delete preffixes;
 }
 
 void SentimentAnalyzer::ImportFile(const char* filename)
 {
+    std::cout << "Importing from file " << filename << std::endl;
+    if(convertLowerCase) std::cout << "Converting words to lowercase." << std::endl;
+    if(filterNonAlpha) std::cout << "Filtering out non alphabetic characters." << std::endl;
+    if(removeStopWords) std::cout << "Removing stop words." << std::endl;
+
     std::ifstream fp;
     fp.open(filename);
     bool running = true;
@@ -44,7 +62,7 @@ void SentimentAnalyzer::ImportFile(const char* filename)
             std::stringstream ss(line);
             int commentScore;
             int wordPos;
-            int i = 0;
+            std::size_t i = 0;
 
             /* extract words and indices */
             /* format: int sentence */
@@ -52,21 +70,26 @@ void SentimentAnalyzer::ImportFile(const char* filename)
 
             while(i < line.size() && ss.tellg() != -1)
             {
-                wordPos = ss.tellg() + 1;
+                wordPos = static_cast<int>(ss.tellg()) + 1;
                 ss >> word;
-                /*  TODO: filter non-alphabetic and trailing whitespaces
-                    TODO: set verbose flag */
                 
-                std::transform(word.begin(), word.end(), word.begin(), ::tolower);
-                std::remove_if(word.begin(), word.end(), [](char c)
+                if(convertLowerCase)
                 {
-                    return (c < 'a' || c > 'z');
-                });
+                    std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+                }
+                if(filterNonAlpha)
+                {
+                    std::remove_if(word.begin(), word.end(), [](char c)
+                    {
+                        return (c < 'a' || c > 'z');
+                    });
+                }
 
-                if(!word.empty())
+                if(word.size() > 1 && !isStopWord(word))
                 {
                     /* push into hash table */
                     wordEntries->push(word, commentScore, commentID, wordPos);
+                    preffixes->push(word);
                     //std::cout << "inserting " << word << " from pos " << wordPos << ". id: " << commentID << ", score: " << commentScore << std::endl;
                 }
 
@@ -84,23 +107,24 @@ void SentimentAnalyzer::ImportFile(const char* filename)
     }
 }
 
+void SentimentAnalyzer::LoadStopWords(const char* filename)
+{
+    std::ifstream fp(filename);
+    if(fp.is_open())
+    {
+        std::string line;
+        while(fp >> line)
+        {
+            stopWords.insert(line);
+        }
+
+        fp.close();
+    } 
+}
+
 WordEntry* SentimentAnalyzer::GetWordEntry(std::string word)
 {
     return (*wordEntries)[word];
-}
-
-float SentimentAnalyzer::GetWordScore(std::string word)
-{
-    WordEntry* wEntry = GetWordEntry(word);
-    if(wEntry != nullptr) return wEntry->averageScore;
-    else return -1;
-}
-
-unsigned int SentimentAnalyzer::GetWordCount(std::string word)
-{
-    WordEntry* wEntry = GetWordEntry(word);
-    if(wEntry != nullptr) return wEntry->count;
-    else return 0;
 }
 
 float SentimentAnalyzer::GetCommentScore(std::string comment)
@@ -121,7 +145,7 @@ float SentimentAnalyzer::GetCommentScore(std::string comment)
             wordScore = wEntry->averageScore;
 
             total += wordScore;
-            wordCount++;
+            wordCount += 1;
 
             // std::cout << word << " has a score of " << wordScore << std::endl;
         }
@@ -146,7 +170,7 @@ void SentimentAnalyzer::PrintInvertedFile(std::string word)
 
 void SentimentAnalyzer::PrintWords()
 {
-    for(int i = 0; i < wordEntries->size(); i++)
+    for(std::size_t i = 0; i < wordEntries->size(); i++)
     {
         std::list<WordEntry*>::iterator it;
         auto hTable = wordEntries->hashTable[i];
@@ -155,5 +179,24 @@ void SentimentAnalyzer::PrintWords()
             auto word = (*it)->word;
             std::cout << word << std::endl; 
         }
+    }
+}
+
+bool SentimentAnalyzer::isStopWord(std::string word)
+{
+    if(removeStopWords)
+    {
+        if( std::find(stopWords.begin(), stopWords.end(), word) != stopWords.end() )
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
     }
 }

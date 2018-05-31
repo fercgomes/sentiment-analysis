@@ -15,13 +15,22 @@ public:
     SentimentAnalyzer(std::size_t initSize);
     ~SentimentAnalyzer();
 
+    /* loads a .txt file with the comments and scores */
     void ImportFile(const char* filename);
+    /* loads a .txt file containing stopwords from the english language */
     void LoadStopWords(const char* filename);
 
+    /* returns a pointer to a word's entry */
     WordEntry* GetWordEntry(std::string word);
+    /* returns the sentiment score for a word */
     float GetCommentScore(std::string comment);    
 
+    /* returns a vector containing all words starting with 'pref' */
+    std::vector<std::string> GetPreffixes(std::string pref);
+
+    /* prints all ocurrences of a word */
     void PrintInvertedFile(std::string word);
+    /* prints all words within the structure */
     void PrintWords();
 
 private:

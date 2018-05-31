@@ -13,34 +13,36 @@
 */
 HashTable::HashTable()
 {
+    std::cout << "HASHTABLE: intializing with default size of " << HASHTABLE_DEFAULT_SIZE << "." << std::endl;
+    
     /* allocate with default size */
     hashTable = new std::list<WordEntry*> [HASHTABLE_DEFAULT_SIZE];
     tableSize = HASHTABLE_DEFAULT_SIZE;
+
     collisions = 0;
     listLimitFlag = false;
     expansionCount = 0;
-
-    std::cout << "HASHTABLE: intializing with default size of " << HASHTABLE_DEFAULT_SIZE << "." << std::endl;
 }
 
 HashTable::HashTable(std::size_t elements)
 {
     std::size_t calculatedSize = std::ceil(TABLESIZE_FACTOR * elements);
+    std::cout << "HASHTABLE: intializing with given size of " << calculatedSize << "." << std::endl;
+
     tableSize = calculatedSize;
     hashTable = new std::list<WordEntry*> [calculatedSize];
+
     collisions = 0;
     listLimitFlag = false;
     expansionCount = 0;
-
-    std::cout << "HASHTABLE: intializing with given size of " << calculatedSize << "." << std::endl;
 }
 
 HashTable::~HashTable()
 {
+    std::cout << "HASHTABLE: destroying." << std::endl;
+    
     /* deallocate the list */
     delete[] hashTable;
-
-    std::cout << "HASHTABLE: destroying." << std::endl;
 }
 
 std::size_t HashTable::size()
@@ -48,9 +50,9 @@ std::size_t HashTable::size()
     return tableSize;
 }
 
-/*
-    Math related
-*/
+/************
+Math related
+************/
 
 bool HashTable::isPrime(unsigned long number)
 {
@@ -74,15 +76,14 @@ bool HashTable::isPrime(unsigned long number)
 
 unsigned long HashTable::nextPrime(unsigned long a)
 {
-    while (!isPrime(++a)) 
-    { }
+    while (!isPrime(++a)){}
     return a;
 }
 
 /* expands the hash table by a constant factor */
 void HashTable::expand(std::size_t baseSize)
 {
-    std::cout << "Resizing to base size of " << baseSize << std::endl;
+    std::cout << "HASHTABLE: Resizing to base size of " << baseSize << std::endl;
 
     std::size_t newSize = nextPrime(baseSize);
     std::list<WordEntry*> *newHashTable = new std::list<WordEntry*> [newSize];
@@ -137,7 +138,7 @@ float HashTable::occupationRatio()
 bool HashTable::shouldExpand()
 {
     if(occupationRatio() >= MAX_OCCUPANCY_RATIO) return true;
-    else if(listLimitFlag) return false;
+    // else if(listLimitFlag) return true;
     else return false;
 }
 
@@ -151,7 +152,7 @@ unsigned long long HashTable::stringToInteger(std::string name)
     int i = 0;
     for(character = name.end(); character != name.begin(); character--){
         characterInt = (unsigned long long) (*character);
-        stringKey = stringKey + (characterInt * (128 * i));
+        stringKey = stringKey + (characterInt * std::pow(32, i));
         i++;
     }
 
@@ -194,7 +195,7 @@ void HashTable::push(std::string word, float score, int id, int offset)
             lookup = new WordEntry(word);
 
             /* inserts into hash table */
-            hashTable[key].emplace_front(lookup);
+            hashTable[key].push_front(lookup);
         }
         
         /* push new word ocurrence */
@@ -279,4 +280,18 @@ void HashTable::printHashTable()
     }
 
     printReport();
+}
+
+void HashTable::printWords()
+{
+    for(std::size_t i = 0; i < size(); i++)
+    {
+        std::list<WordEntry*>::iterator it;
+        auto hTable = hashTable[i];
+        for(it = hTable.begin(); it != hTable.end(); it++)
+        {
+            auto word = (*it)->word;
+            std::cout << word << std::endl; 
+        }
+    }
 }

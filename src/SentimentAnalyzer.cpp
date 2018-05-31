@@ -2,8 +2,12 @@
 #include <sstream>
 #include <algorithm>
 
+#define INIT_SIZE_FACTOR 1.3
+
 SentimentAnalyzer::SentimentAnalyzer()
 {
+    std::cout << "SA: initializing." << std::endl;
+
     wordEntries = new HashTable();
     preffixes = new TrieTree;
 
@@ -15,6 +19,8 @@ SentimentAnalyzer::SentimentAnalyzer()
 
 SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
 {
+    std::cout << "SA: initializing." << std::endl;
+
     wordEntries = new HashTable(size);
     preffixes = new TrieTree;
 
@@ -26,16 +32,32 @@ SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
 
 SentimentAnalyzer::~SentimentAnalyzer()
 {
+    std::cout << "SA: destroying." << std::endl;
+
     delete wordEntries;
     delete preffixes;
 }
 
+/*******************************************************
+ * ImportFile
+ * 
+ * File format:
+ * x foo bar
+ * 
+ * x: comment score
+ * "foo bar": comment
+ * 
+ * ImportFile will use the line count times a constant
+ * to initialize a Hash Table, and push each word in
+ * each comment into the corresponding word entry. The
+ * word is also pushed into the Trie Tree.
+ ******************************************************/
 void SentimentAnalyzer::ImportFile(const char* filename)
 {
-    std::cout << "Importing from file " << filename << std::endl;
-    if(convertLowerCase) std::cout << "Converting words to lowercase." << std::endl;
-    if(filterNonAlpha) std::cout << "Filtering out non alphabetic characters." << std::endl;
-    if(removeStopWords) std::cout << "Removing stop words." << std::endl;
+    std::cout << "SA: importing from file " << filename << std::endl;
+    if(convertLowerCase) std::cout << "SA: converting words to lowercase." << std::endl;
+    if(filterNonAlpha) std::cout << "SA: filtering out non alphabetic characters." << std::endl;
+    if(removeStopWords) std::cout << "SA: removing stop words." << std::endl;
 
     std::ifstream fp;
     fp.open(filename);
@@ -48,7 +70,7 @@ void SentimentAnalyzer::ImportFile(const char* filename)
                                             std::istreambuf_iterator<char>(), '\n');
 
         /* set new size for hash table */
-        wordEntries->expand(lineCount);
+        wordEntries->expand(lineCount * INIT_SIZE_FACTOR);
 
         /* reset input buffer */
         fp.seekg(0);
@@ -87,10 +109,10 @@ void SentimentAnalyzer::ImportFile(const char* filename)
 
                 if(word.size() > 1 && !isStopWord(word))
                 {
-                    /* push into hash table */
+                    /* pushes into hash table */
                     wordEntries->push(word, commentScore, commentID, wordPos);
+                    /* pushes into Trie Tree */
                     preffixes->push(word);
-                    //std::cout << "inserting " << word << " from pos " << wordPos << ". id: " << commentID << ", score: " << commentScore << std::endl;
                 }
 
                 i = wordPos + word.size();
@@ -107,6 +129,7 @@ void SentimentAnalyzer::ImportFile(const char* filename)
     }
 }
 
+/* loads lines of text containing stopwords into a set */
 void SentimentAnalyzer::LoadStopWords(const char* filename)
 {
     std::ifstream fp(filename);
@@ -127,6 +150,12 @@ WordEntry* SentimentAnalyzer::GetWordEntry(std::string word)
     return (*wordEntries)[word];
 }
 
+/************************************************************
+ * GetCommentScore
+ * 
+ * Given a string containing a sentence, it calculates the
+ * average score with each words individual score.
+ ***********************************************************/
 float SentimentAnalyzer::GetCommentScore(std::string comment)
 {
     float total = 0, average = -1, wordScore, wordCount = 0;
@@ -146,13 +175,16 @@ float SentimentAnalyzer::GetCommentScore(std::string comment)
 
             total += wordScore;
             wordCount += 1;
-
-            // std::cout << word << " has a score of " << wordScore << std::endl;
         }
     }
 
     average = total / wordCount;
     return average;
+}
+
+std::vector<std::string> SentimentAnalyzer::GetPreffixes(std::string pref)
+{
+    return preffixes->getPreffixes(pref);
 }
 
 void SentimentAnalyzer::PrintInvertedFile(std::string word)
@@ -170,22 +202,14 @@ void SentimentAnalyzer::PrintInvertedFile(std::string word)
 
 void SentimentAnalyzer::PrintWords()
 {
-    for(std::size_t i = 0; i < wordEntries->size(); i++)
-    {
-        std::list<WordEntry*>::iterator it;
-        auto hTable = wordEntries->hashTable[i];
-        for(it = hTable.begin(); it != hTable.end(); it++)
-        {
-            auto word = (*it)->word;
-            std::cout << word << std::endl; 
-        }
-    }
+    wordEntries->printWords();
 }
 
 bool SentimentAnalyzer::isStopWord(std::string word)
 {
     if(removeStopWords)
     {
+        /* if word is in the set */
         if( std::find(stopWords.begin(), stopWords.end(), word) != stopWords.end() )
         {
             return true;
@@ -195,6 +219,7 @@ bool SentimentAnalyzer::isStopWord(std::string word)
             return false;
         }
     }
+    /* if stopwords are not taken in consideration, it always returns false */
     else
     {
         return false;

@@ -93,15 +93,15 @@ bool TrieTree::search(std::string key)
     return (pCrawl != nullptr && pCrawl->isEndOfWord);
 }
 
-std::vector<std::string> TrieTree::getSuffixes(std::string key)
+std::vector<std::string> TrieTree::getPreffixes(std::string key)
 {
     std::vector<std::string> preffixes;
-    findSuffix(key, preffixes);
+    findPreffix(key, preffixes);
 
     return preffixes;
 }
 
-bool TrieTree::findSuffix(std::string key, std::vector<std::string>& target)
+bool TrieTree::findPreffix(std::string key, std::vector<std::string>& target)
 {
     TrieNode* pCrawl = root;
     std::size_t i = 0;
@@ -109,7 +109,7 @@ bool TrieTree::findSuffix(std::string key, std::vector<std::string>& target)
 
     while(i < key.size() && found)
     {
-        std::size_t index = getCharPosition(i);
+        int index = getCharPosition(key[i]);
 
         if(pCrawl->children[index] == nullptr)
         {
@@ -124,13 +124,13 @@ bool TrieTree::findSuffix(std::string key, std::vector<std::string>& target)
 
     if(found)
     {
-        getSuffixesCrawler(pCrawl, key, target);
+        getPreffixesCrawler(pCrawl, key, target);
     }
 
     return found;
 }
 
-void TrieTree::getSuffixesCrawler(TrieNode* subRoot, std::string key, std::vector<std::string>& target)
+void TrieTree::getPreffixesCrawler(TrieNode* subRoot, std::string key, std::vector<std::string>& target)
 {
     TrieNode* pCrawl = subRoot;
 
@@ -145,17 +145,17 @@ void TrieTree::getSuffixesCrawler(TrieNode* subRoot, std::string key, std::vecto
         {
             auto character = getCharFromPosition(i);
             key.push_back(character);
-            getSuffixesCrawler(pCrawl->children[i], key, target);
+            getPreffixesCrawler(pCrawl->children[i], key, target);
             key.pop_back();
         }
     }
 }
 
-std::size_t TrieTree::getCharPosition(char c)
+int TrieTree::getCharPosition(char c)
 {
     /* TODO: check if character is alphabetic */
     c = tolower(c);
-    return static_cast<std::size_t>(c) - static_cast<std::size_t>('a'); 
+    return c - 'a'; 
 }
 
 char TrieTree::getCharFromPosition(std::size_t pos)

@@ -57,8 +57,7 @@ void WordEntry::AddOcurrence(int id, int offset, float score)
     if(!found || invertedFile.empty())
     {
         /* create new comment entry */
-        CommentEntry newEntry(id, offset, score);
-        invertedFile.push_back(newEntry);
+        invertedFile.emplace_back(id, offset, score);
         UpdateSandardDeviation();
     }
 }

@@ -37,4 +37,6 @@ private:
 
     bool FileExists(const char* path);
 
+    void DumpInvertedFile(std::ofstream& of, const WordEntry* entry);
+
 };

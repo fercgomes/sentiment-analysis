@@ -1,5 +1,6 @@
 #include "ConsoleApp.h"
 #include <curses.h>
+#include <ostream>
 
 #define MAIN_MENU_ANCHOR_POINT_X 4
 #define MAIN_MENU_ANCHOR_POINT_Y 2
@@ -61,6 +62,7 @@ void ConsoleApp::MainMenu()
     opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 7, 0);
     switch(opt)
     {
+        /* load data */
         case 0:
             LoadDataMenu();
             break;
@@ -77,7 +79,16 @@ void ConsoleApp::MainMenu()
             }
             break;
 
+        /* word ocurrences */
         case 2:
+            if(goodToGo)
+            {
+                WordOcurrencesMenu();
+            }
+            else
+            {
+                Error("No data loaded.");
+            }
             break;
 
         case 3:
@@ -196,7 +207,6 @@ void ConsoleApp::LoadDataMenu()
                 if(!pathData.empty() && !goodToGo)
                 {
                     clear();
-                    PrintString("Loading data...", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 3);
 
                     /* load stopwords */
                     if(controller.removeStopWords)
@@ -258,6 +268,64 @@ void ConsoleApp::WordClassificationMenu()
         Error("Word doesn't exist.");
     }
 
+}
+
+void ConsoleApp::WordOcurrencesMenu()
+{
+    bool menuActive = true;
+    int opt = 0;
+    std::string word;
+    std::string fileName;
+    std::ofstream fp;
+
+    do 
+    {
+        clear();
+        PrintString(" Word: ", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
+        word = UserInput(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 7);
+        
+        /* check word exists */
+        WordEntry *wEntry = controller.GetWordEntry(word);
+        if(wEntry != nullptr)
+        {
+            PrintString(" Print to standard output", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
+            PrintString(" Print to file", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
+            PrintString(" Back", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
+
+            opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 3, opt);
+            switch(opt)
+            {
+                /* print to stdout */
+                case 0:
+                    /* TODO: reader */
+                    Error("Function not implemented.");
+                    menuActive = false;
+                    break;
+
+                /* print to file */
+                case 1:
+                    fileName = word + "-inverted_file.txt";
+                    fp.open(fileName);
+                    DumpInvertedFile(fp, wEntry);
+                    fp.close();
+                    StatusMessage("Saved to file.");
+                    menuActive = false;
+                    break;
+
+                /* back */
+                case 2:
+                    menuActive = false;
+                    break;
+
+            }
+        }
+        else
+        {
+            Error("Word doesn't exist.");
+            menuActive = false;
+        }
+    }
+    while(menuActive);
 }
 
 void ConsoleApp::Error(const char* errorMessage)
@@ -349,4 +417,21 @@ bool ConsoleApp::FileExists(const char* path)
 {
     std::ifstream infile(path);
     return infile.good();
+}
+
+void ConsoleApp::DumpInvertedFile(std::ofstream& of, const WordEntry* entry)
+{
+    auto invFile = entry->invertedFile;
+
+    std::list<CommentEntry>::iterator doc;
+    for(doc = invFile.begin(); doc != invFile.end(); doc++)
+    {
+        of << "Comment #" << (*doc).commentID << ", Sentiment " << (*doc).commentScore << std::endl;
+        std::list<std::size_t>::iterator ocur;
+        auto ocurList = (*doc).ocurrences;
+        for(ocur = ocurList.begin(); ocur != ocurList.end(); ocur++)
+        {
+            of << "Offset #" << (*ocur) << std::endl;
+        }                        
+    } 
 }

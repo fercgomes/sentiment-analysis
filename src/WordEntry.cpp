@@ -107,6 +107,11 @@ void WordEntry::PrintOcurrences()
     }
 }
 
+std::list<CommentEntry>& WordEntry::GetInvertFile()
+{
+    return invertedFile;
+}
+
 std::ostream& operator<<(std::ostream& os, const WordEntry* dt)
 {
     os << "Entry for " << dt->word << ":" << std::endl;

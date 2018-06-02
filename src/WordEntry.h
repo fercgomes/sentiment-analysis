@@ -29,8 +29,8 @@ public:
     void AddOcurrence(int commentID, int commentOffset, float commentScore);
     void UpdateSandardDeviation();
     void PrintOcurrences();
+    std::list<CommentEntry>& GetInvertFile();
 
+    /* stdout */
     friend std::ostream& operator<<(std::ostream& os, const WordEntry* wD);
-
-private:
 };

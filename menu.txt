@@ -1,0 +1,88 @@
+********** MAIN MENU **********
+Sentiment Analyzer
+Status: (no data | x words loaded)
+
+> (Load data | Reload data)
+> Get Word Classification
+> Get Word Ocurrences
+> Classify Comment
+> Preffix Search
+> Ranking
+
+********** Load|Reload Data ********** 
+> Convert words to lowercase: true|false
+> Filter non-alphabetical characters: true|false
+> Remove stopwords: true|false
+> Path: (user input, valid file)
+> Load (must be valid file)
+
+********** Get Word Classification **********
+Word: (user input)
+
+Entry for (word):
++-------------------------------------+
+(entry)
+
+(or)
+
+Word not found.
+Press any key to continue...
+
+
+********** Get Word Ocurrences **********
+> Print result to standard output
+> Print result to file
+> Main Menu
+
+Word: (user input)
+
+(inverted file for word)
+(or)
+Saved result in word-invertedfile.txt
+(or)
+Word not found.
+Press any key to continue...
+
+********** Classify Comment **********
+> Get comment from standard input
+> Bulk classify from file
+> Main Menu
+
+Comment:
+(user input)
+
+(or)
+
+Path to comment file: (user input)
+
+File doesn't exist.
+(or)
+
+Line k: (score) 
+(or)
+
+Comment sentiment score: (score)
+Press any key to continue...
+
+********** Preffix Search **********
+Preffix: (user input)
+
+(preffix list)
+(or)
+No words with this preffix were found.
+Press any key to continue...
+
+********** Preffix Search **********
+> Rank by positive polarity
+> Rank by negative polarity
+> Rank by ocurrence
+
+Word: (user input)
+Number of entries: (user input, 1 <= x <= 10)
+
+(ranking)
+
+(or)
+
+Word not found.
+Press any key to continue...

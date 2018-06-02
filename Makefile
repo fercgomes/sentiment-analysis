@@ -8,8 +8,8 @@ SOURCES = $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
 CFLAGS = -g -Wall -std=c++11
 
-LIB =
-INC =
+LIB = -lncurses
+INC = 
 
 $(TARGET): $(OBJECTS)
 	@echo " Linking..."

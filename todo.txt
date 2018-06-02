@@ -11,3 +11,6 @@ TODO:
 IDEA:
 A vector for each filter, holding pointers to the word entries.
 Search by offset.
+
+> Get inverted file as a structure 
+> Interface with kaggle challenge

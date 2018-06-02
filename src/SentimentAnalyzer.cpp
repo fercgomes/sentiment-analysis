@@ -6,7 +6,7 @@
 
 SentimentAnalyzer::SentimentAnalyzer()
 {
-    std::cout << "SA: initializing." << std::endl;
+    // std::cout << "SA: initializing." << std::endl;
 
     wordEntries = new HashTable();
     preffixes = new TrieTree;
@@ -19,7 +19,7 @@ SentimentAnalyzer::SentimentAnalyzer()
 
 SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
 {
-    std::cout << "SA: initializing." << std::endl;
+    // std::cout << "SA: initializing." << std::endl;
 
     wordEntries = new HashTable(size);
     preffixes = new TrieTree;
@@ -32,7 +32,7 @@ SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
 
 SentimentAnalyzer::~SentimentAnalyzer()
 {
-    std::cout << "SA: destroying." << std::endl;
+    // std::cout << "SA: destroying." << std::endl;
 
     delete wordEntries;
     delete preffixes;
@@ -54,10 +54,10 @@ SentimentAnalyzer::~SentimentAnalyzer()
  ******************************************************/
 void SentimentAnalyzer::ImportFile(const char* filename)
 {
-    std::cout << "SA: importing from file " << filename << std::endl;
-    if(convertLowerCase) std::cout << "SA: converting words to lowercase." << std::endl;
-    if(filterNonAlpha) std::cout << "SA: filtering out non alphabetic characters." << std::endl;
-    if(removeStopWords) std::cout << "SA: removing stop words." << std::endl;
+    // std::cout << "SA: importing from file " << filename << std::endl;
+    // if(convertLowerCase) std::cout << "SA: converting words to lowercase." << std::endl;
+    // if(filterNonAlpha) std::cout << "SA: filtering out non alphabetic characters." << std::endl;
+    // if(removeStopWords) std::cout << "SA: removing stop words." << std::endl;
 
     std::ifstream fp;
     fp.open(filename);

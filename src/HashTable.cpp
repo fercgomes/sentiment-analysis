@@ -13,7 +13,7 @@
 */
 HashTable::HashTable()
 {
-    std::cout << "HASHTABLE: intializing with default size of " << HASHTABLE_DEFAULT_SIZE << "." << std::endl;
+    // std::cout << "HASHTABLE: intializing with default size of " << HASHTABLE_DEFAULT_SIZE << "." << std::endl;
     
     /* allocate with default size */
     hashTable = new std::list<WordEntry*> [HASHTABLE_DEFAULT_SIZE];
@@ -27,7 +27,7 @@ HashTable::HashTable()
 HashTable::HashTable(std::size_t elements)
 {
     std::size_t calculatedSize = std::ceil(TABLESIZE_FACTOR * elements);
-    std::cout << "HASHTABLE: intializing with given size of " << calculatedSize << "." << std::endl;
+    // std::cout << "HASHTABLE: intializing with given size of " << calculatedSize << "." << std::endl;
 
     tableSize = calculatedSize;
     hashTable = new std::list<WordEntry*> [calculatedSize];
@@ -39,7 +39,7 @@ HashTable::HashTable(std::size_t elements)
 
 HashTable::~HashTable()
 {
-    std::cout << "HASHTABLE: destroying." << std::endl;
+    // std::cout << "HASHTABLE: destroying." << std::endl;
     
     /* deallocate the list */
     delete[] hashTable;
@@ -83,7 +83,7 @@ unsigned long HashTable::nextPrime(unsigned long a)
 /* expands the hash table by a constant factor */
 void HashTable::expand(std::size_t baseSize)
 {
-    std::cout << "HASHTABLE: Resizing to base size of " << baseSize << std::endl;
+    // std::cout << "HASHTABLE: Resizing to base size of " << baseSize << std::endl;
 
     std::size_t newSize = nextPrime(baseSize);
     std::list<WordEntry*> *newHashTable = new std::list<WordEntry*> [newSize];
@@ -207,7 +207,7 @@ void HashTable::push(std::string word, float score, int id, int offset)
         if(shouldExpand())
         {
             rehash(); 
-            std::cout << "Hash Table will be expanded!" << std::endl;
+            // std::cout << "Hash Table will be expanded!" << std::endl;
         }
     }
 }

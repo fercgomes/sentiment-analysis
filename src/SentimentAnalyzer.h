@@ -26,7 +26,7 @@ public:
     float GetCommentScore(std::string comment);    
 
     /* returns a vector containing all words starting with 'pref' */
-    std::vector<std::string> GetPreffixes(std::string pref);
+    std::list<std::string> GetPreffixes(std::string pref);
 
     /* prints all ocurrences of a word */
     void PrintInvertedFile(std::string word);

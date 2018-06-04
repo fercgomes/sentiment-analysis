@@ -4,9 +4,8 @@
 #include "Trie.h"
 #include <iostream>
 #include <string>
-#include <vector>
-#include <exception>
 #include <algorithm>
+#include <list>
 
 /* Trie Node */
 
@@ -93,15 +92,15 @@ bool TrieTree::search(std::string key)
     return (pCrawl != nullptr && pCrawl->isEndOfWord);
 }
 
-std::vector<std::string> TrieTree::getPreffixes(std::string key)
+std::list<std::string> TrieTree::getPreffixes(std::string key)
 {
-    std::vector<std::string> preffixes;
+    std::list<std::string> preffixes;
     findPreffix(key, preffixes);
 
     return preffixes;
 }
 
-bool TrieTree::findPreffix(std::string key, std::vector<std::string>& target)
+bool TrieTree::findPreffix(std::string key, std::list<std::string>& target)
 {
     TrieNode* pCrawl = root;
     std::size_t i = 0;
@@ -130,7 +129,7 @@ bool TrieTree::findPreffix(std::string key, std::vector<std::string>& target)
     return found;
 }
 
-void TrieTree::getPreffixesCrawler(TrieNode* subRoot, std::string key, std::vector<std::string>& target)
+void TrieTree::getPreffixesCrawler(TrieNode* subRoot, std::string key, std::list<std::string>& target)
 {
     TrieNode* pCrawl = subRoot;
 

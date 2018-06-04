@@ -26,6 +26,7 @@ private:
     void Error(const char* errorMessage);
     void PressAnyKey(int y, int x);
     void StatusMessage(const char* message);
+    void Reader(std::list<std::string> text);
 
     /* user input with cursor at (x,y) */
     std::string UserInput(int y, int x);

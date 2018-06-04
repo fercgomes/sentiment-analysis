@@ -91,13 +91,40 @@ void ConsoleApp::MainMenu()
             }
             break;
 
+        /* classify comment */
         case 3:
+            if(goodToGo)
+            {
+                ClassifyCommentMenu();
+            }
+            else
+            {
+                Error("No data loaded.");
+            }
             break;
 
+        /* preffix search */
         case 4:
+            if(goodToGo)
+            {
+                PreffixSearchMenu();
+            }
+            else
+            {
+                Error("No data loaded.");
+            }
             break;
 
+        /* ranking menu */
         case 5:
+            if(goodToGo)
+            {
+                RankingMenu();
+            }
+            else
+            {
+                Error("No data loaded.");
+            }
             break;
 
         case 6:
@@ -288,22 +315,14 @@ void ConsoleApp::WordOcurrencesMenu()
         WordEntry *wEntry = controller.GetWordEntry(word);
         if(wEntry != nullptr)
         {
-            PrintString(" Print to standard output", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
             PrintString(" Print to file", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
             PrintString(" Back", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
 
-            opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 3, opt);
+            opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2, opt);
             switch(opt)
             {
-                /* print to stdout */
-                case 0:
-                    /* TODO: reader */
-                    Error("Function not implemented.");
-                    menuActive = false;
-                    break;
-
                 /* print to file */
-                case 1:
+                case 0:
                     fileName = word + "-inverted_file.txt";
                     fp.open(fileName);
                     DumpInvertedFile(fp, wEntry);
@@ -313,7 +332,7 @@ void ConsoleApp::WordOcurrencesMenu()
                     break;
 
                 /* back */
-                case 2:
+                case 1:
                     menuActive = false;
                     break;
 
@@ -326,6 +345,74 @@ void ConsoleApp::WordOcurrencesMenu()
         }
     }
     while(menuActive);
+}
+
+void ConsoleApp::ClassifyCommentMenu()
+{
+    int opt = 0;
+    std::string comment;
+    std::string classification;
+    std::string path;
+    std::ofstream fp;
+
+    clear();
+    PrintString(" Load comment from standard input", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
+    PrintString(" Load comments from file", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
+    PrintString(" Back", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
+
+    opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 3, opt);
+    switch(opt)
+    {
+        /* load from stdin */
+        case 0:
+            PrintString("Comment:", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
+
+            comment = UserInput(MAIN_MENU_ANCHOR_POINT_Y + 4, MAIN_MENU_ANCHOR_POINT_X);
+            classification = std::to_string(controller.GetCommentScore(comment));
+
+            PrintString("Sentiment: ", MAIN_MENU_ANCHOR_POINT_Y + 6, MAIN_MENU_ANCHOR_POINT_X, 2);
+            PrintString(classification.c_str(), MAIN_MENU_ANCHOR_POINT_Y + 6, MAIN_MENU_ANCHOR_POINT_X + 11, 1);
+            PressAnyKey(MAIN_MENU_ANCHOR_POINT_Y + 7, MAIN_MENU_ANCHOR_POINT_X);
+            break;
+
+        /* load from file */
+        case 1:
+            Error("Not implemented.");
+            // PrintString("Path: ", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
+            // path = UserInput(MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 6);
+            /* TODO: classify file function */
+
+            break;
+
+        /* back */
+        case 2:
+            break;
+    }
+}
+
+void ConsoleApp::PreffixSearchMenu()
+{
+    std::string pref;
+    std::list<std::string> prefList;
+
+    clear();
+    PrintString("Preffix: ", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
+    pref = UserInput(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 9);
+    prefList = controller.GetPreffixes(pref);
+
+    if(prefList.empty())
+    {
+        Error("No words found.");
+    }
+    else
+    {
+        Reader(prefList);
+    }
+}
+
+void ConsoleApp::RankingMenu()
+{
+
 }
 
 void ConsoleApp::Error(const char* errorMessage)
@@ -347,6 +434,79 @@ void ConsoleApp::StatusMessage(const char* message)
     clear();
     PrintString(message, MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 3);
     PressAnyKey(MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X);
+}
+void ConsoleApp::Reader(std::list<std::string> text)
+{
+    constexpr int onScreen = 20;
+    
+    bool topEnd, bottomEnd, active;
+    std::list<std::string>::iterator top, bottom, it;
+
+    top = bottom = text.begin();
+    topEnd = true;
+    bottomEnd = false;
+
+    int i = 0;
+    while(bottom != text.end() && i < onScreen)
+    {
+        bottom++;
+        i++;
+    }
+
+    active = true;
+    do
+    {
+        clear();
+        /* print current lines */
+        i = 0;
+        for(it = top; it != bottom; it++)
+        {
+            PrintString((*it).c_str(), i + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
+            i++;
+        } 
+
+        /* wait input */
+        wchar_t op = wgetch(stdscr);
+        switch(op)
+        {
+            case KEY_UP:
+                if(!topEnd)
+                {
+                    bottom = top;
+                    i = 0;
+                    while(top != text.begin() && i < onScreen)
+                    {
+                        top--;
+                        i++;
+                    }
+                    if(top == text.begin()) topEnd = true;
+                    bottomEnd = false;
+                }
+                break;
+
+            case KEY_DOWN:
+                if(!bottomEnd)
+                {
+                    top = bottom;
+                    i = 0;
+                    while(bottom != text.end() && i < onScreen)
+                    {
+                        bottom++;
+                        i++;
+                    }
+                    if(bottom == text.end()) bottomEnd = true; 
+                    topEnd = false;
+
+                }
+                break;
+
+            case 10:
+                active = false;
+                break;
+        }
+
+    }
+    while(active);
 }
 
 std::string ConsoleApp::UserInput(int y, int x)

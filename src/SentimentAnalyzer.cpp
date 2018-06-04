@@ -182,7 +182,7 @@ float SentimentAnalyzer::GetCommentScore(std::string comment)
     return average;
 }
 
-std::vector<std::string> SentimentAnalyzer::GetPreffixes(std::string pref)
+std::list<std::string> SentimentAnalyzer::GetPreffixes(std::string pref)
 {
     return preffixes->getPreffixes(pref);
 }

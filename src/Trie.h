@@ -3,7 +3,7 @@
 *****************/
 #include <iostream>
 #include <string>
-#include <vector>
+#include <list>
 
 constexpr int alphabetSize = 26;
 
@@ -30,13 +30,13 @@ public:
     /* SEARCH: returns wheter the key is present */
     bool search(std::string key);
     /* GET PREFFIXES: returns a vector containing the words beginning with 'key' */
-    std::vector<std::string> getPreffixes(std::string key);
+    std::list<std::string> getPreffixes(std::string key);
 
 private:
     TrieNode* root;
 
-    bool findPreffix(std::string key, std::vector<std::string>& target);
-    void getPreffixesCrawler(TrieNode* subRoot, std::string key, std::vector<std::string>& target);
+    bool findPreffix(std::string key, std::list<std::string>& target);
+    void getPreffixesCrawler(TrieNode* subRoot, std::string key, std::list<std::string>& target);
 
     static int getCharPosition(char c);
     static char getCharFromPosition(std::size_t pos);

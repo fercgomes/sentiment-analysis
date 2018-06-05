@@ -1,9 +1,6 @@
 #include "SentimentAnalyzer.h"
 #include <sstream>
 #include <algorithm>
-#include "Teste.h"
-
-class Rank;
 
 #define INIT_SIZE_FACTOR 1.3
 
@@ -132,7 +129,6 @@ void SentimentAnalyzer::ImportFile(const char* filename)
     }
 
     /* done loading */
-    rank.make_rank(wordEntries->hashTable);
 }
 
 /* loads lines of text containing stopwords into a set */

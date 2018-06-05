@@ -3,7 +3,6 @@
 #include "Trie.h"
 #include <unordered_set>
 
-class Rank;
 class SentimentAnalyzer
 {
 public:
@@ -37,7 +36,6 @@ public:
 private:
     HashTable *wordEntries;
     TrieTree *preffixes;
-    Rank rank;
     std::unordered_set<std::string> stopWords;
 
     bool isStopWord(std::string word);

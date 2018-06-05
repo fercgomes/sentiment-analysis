@@ -248,7 +248,8 @@ WordEntry* HashTable::operator[](std::string word)
 void HashTable::printReport()
 {
     std::cout << "====================================" << std::endl;
-    std::cout << "Details about the Hash Table: " << std::endl; std::cout << "Table size:\t" << tableSize << std::endl;
+    std::cout << "Details about the Hash Table: " << std::endl;
+    std::cout << "Table size:\t" << tableSize << std::endl;
     std::cout << "Occupancy rate:\t" << occupationRatio() << std::endl;
     std::cout << "Collisions:\t" << collisions << std::endl;
     std::cout << "Expansions:\t" << expansionCount << std::endl;

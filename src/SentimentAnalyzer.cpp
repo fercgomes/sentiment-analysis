@@ -1,6 +1,9 @@
 #include "SentimentAnalyzer.h"
 #include <sstream>
 #include <algorithm>
+#include "Teste.h"
+
+class Rank;
 
 #define INIT_SIZE_FACTOR 1.3
 
@@ -67,7 +70,7 @@ void SentimentAnalyzer::ImportFile(const char* filename)
     {
         /* get line count */
         std::size_t lineCount = std::count(std::istreambuf_iterator<char>(fp),
-                                            std::istreambuf_iterator<char>(), '\n');
+                                           std::istreambuf_iterator<char>(), '\n');
 
         /* set new size for hash table */
         wordEntries->expand(lineCount * INIT_SIZE_FACTOR);
@@ -127,6 +130,9 @@ void SentimentAnalyzer::ImportFile(const char* filename)
         }
         fp.close();
     }
+
+    /* done loading */
+    rank.make_rank(wordEntries->hashTable);
 }
 
 /* loads lines of text containing stopwords into a set */

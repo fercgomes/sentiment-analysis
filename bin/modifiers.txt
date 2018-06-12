@@ -1,0 +1,6 @@
+really 0.1
+very 0.1
+extremely 0.2
+quite 0.1
+rather 0.1
+too 0.1

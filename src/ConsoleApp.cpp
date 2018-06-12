@@ -48,7 +48,8 @@ void ConsoleApp::MainMenu()
     PrintString(" Classify Comment", MAIN_MENU_ANCHOR_POINT_Y + 5, MAIN_MENU_ANCHOR_POINT_X, 2);
     PrintString(" Preffix Search", MAIN_MENU_ANCHOR_POINT_Y + 6, MAIN_MENU_ANCHOR_POINT_X, 2);
     PrintString(" Ranking", MAIN_MENU_ANCHOR_POINT_Y + 7, MAIN_MENU_ANCHOR_POINT_X, 2);
-    PrintString(" Exit", MAIN_MENU_ANCHOR_POINT_Y + 8, MAIN_MENU_ANCHOR_POINT_X, 2);
+    PrintString(" Kaggle Challenge", MAIN_MENU_ANCHOR_POINT_Y + 8, MAIN_MENU_ANCHOR_POINT_X, 2);
+    PrintString(" Exit", MAIN_MENU_ANCHOR_POINT_Y + 9, MAIN_MENU_ANCHOR_POINT_X, 2);
 
     if(goodToGo)
     {
@@ -59,7 +60,7 @@ void ConsoleApp::MainMenu()
         PrintString("No data loaded", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 29, 4);
     }
 
-    opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 7, 0);
+    opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 8, 0);
     switch(opt)
     {
         /* load data */
@@ -127,7 +128,19 @@ void ConsoleApp::MainMenu()
             }
             break;
 
+        /* kaggle challenged */
         case 6:
+            if(goodToGo)
+            {
+                KaggleMenu();
+            }
+            else
+            {
+                Error("No data loaded.");
+            }
+            break;
+
+        case 7:
             running = false;
             break;
     }
@@ -368,7 +381,7 @@ void ConsoleApp::ClassifyCommentMenu()
             PrintString("Comment:", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
 
             comment = UserInput(MAIN_MENU_ANCHOR_POINT_Y + 4, MAIN_MENU_ANCHOR_POINT_X);
-            classification = std::to_string(controller.GetCommentScore(comment));
+            classification = std::to_string(controller.GetCommentWeightedScore(comment));
 
             PrintString("Sentiment: ", MAIN_MENU_ANCHOR_POINT_Y + 6, MAIN_MENU_ANCHOR_POINT_X, 2);
             PrintString(classification.c_str(), MAIN_MENU_ANCHOR_POINT_Y + 6, MAIN_MENU_ANCHOR_POINT_X + 11, 1);
@@ -413,6 +426,26 @@ void ConsoleApp::PreffixSearchMenu()
 void ConsoleApp::RankingMenu()
 {
 
+}
+
+void ConsoleApp::KaggleMenu()
+{
+    clear();
+    PrintString("Path to dataset: ", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
+    std::string path = UserInput(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 17); 
+    if(path.empty())
+    {
+        Error("No file given.");
+    }
+    else if(!FileExists(path.c_str()))
+    {
+        Error("File doesn't exist.");
+    }
+    else
+    {
+        KaggleChallenge(path);
+        StatusMessage("Done.");
+    }
 }
 
 void ConsoleApp::Error(const char* errorMessage)
@@ -594,4 +627,48 @@ void ConsoleApp::DumpInvertedFile(std::ofstream& of, const WordEntry* entry)
             of << "Offset #" << (*ocur) << std::endl;
         }                        
     } 
+}
+
+void ConsoleApp::KaggleChallenge(std::string path)
+{
+    std::ifstream inFile;
+    std::ofstream outFile;
+
+    std::string phraseIDstr;
+    std::string sentenceIDstr;
+    std::string comment;
+    unsigned int phraseID, sentenceID;
+
+    std::string outPath = "submission.csv";
+
+    inFile.open(path);
+    outFile.open(outPath);
+
+    /* ignores header line */
+    std::getline(inFile, comment);
+    /* sets header line for output */
+    outFile << "PhraseId,Sentiment" << std::endl;
+
+    bool active = true;
+    while(active)
+    {
+        std::getline(inFile, phraseIDstr, '\t');
+        if(inFile.eof())
+        {
+            active = false;
+        }
+        else
+        {
+            phraseID = std::stoi(phraseIDstr);
+            std::getline(inFile, sentenceIDstr, '\t');
+            sentenceID = std::stoi(sentenceIDstr);
+            std::getline(inFile, comment);
+
+            auto score = std::round(controller.GetCommentScore(comment));
+            outFile << phraseID << "," << score << std::endl;
+        }
+    }
+
+    inFile.close();
+    outFile.close();
 }

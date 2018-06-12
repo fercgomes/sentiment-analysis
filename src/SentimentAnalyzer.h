@@ -1,6 +1,7 @@
 #pragma once
 #include "HashTable.h"
 #include "Trie.h"
+#include "CommentClassifier.h"
 #include <unordered_set>
 
 class SentimentAnalyzer
@@ -10,6 +11,7 @@ public:
     bool convertLowerCase;
     bool filterNonAlpha;
     bool removeStopWords;
+    CommentClassifier* classifier;
 
     SentimentAnalyzer();    
     SentimentAnalyzer(std::size_t initSize);
@@ -24,6 +26,9 @@ public:
     WordEntry* GetWordEntry(std::string word);
     /* returns the sentiment score for a word */
     float GetCommentScore(std::string comment);    
+
+    /* TODO: */
+    double GetCommentWeightedScore(std::string comment);
 
     /* returns a vector containing all words starting with 'pref' */
     std::list<std::string> GetPreffixes(std::string pref);

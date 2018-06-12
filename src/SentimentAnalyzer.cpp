@@ -15,6 +15,9 @@ SentimentAnalyzer::SentimentAnalyzer()
     convertLowerCase = false;
     filterNonAlpha = false;
     removeStopWords = false;
+
+    /* initializes the classifier */
+    classifier = new CommentClassifier(wordEntries);
 }
 
 SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
@@ -28,6 +31,9 @@ SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
     convertLowerCase = false;
     filterNonAlpha = false;
     removeStopWords = false;
+
+    /* initializes the classifier */
+    classifier = new CommentClassifier(wordEntries);
 }
 
 SentimentAnalyzer::~SentimentAnalyzer()
@@ -160,7 +166,7 @@ WordEntry* SentimentAnalyzer::GetWordEntry(std::string word)
  ***********************************************************/
 float SentimentAnalyzer::GetCommentScore(std::string comment)
 {
-    float total = 0, average = -1, wordScore, wordCount = 0;
+    float total = 0, average = 0, wordScore, wordCount = 0;
     WordEntry* wEntry;
     std::string word;
 
@@ -180,8 +186,17 @@ float SentimentAnalyzer::GetCommentScore(std::string comment)
         }
     }
 
-    average = total / wordCount;
+    if(total)
+    {
+        average = total / wordCount;
+    }
+
     return average;
+}
+
+double SentimentAnalyzer::GetCommentWeightedScore(std::string comment)
+{
+    return classifier->GetScore(comment);
 }
 
 std::list<std::string> SentimentAnalyzer::GetPreffixes(std::string pref)

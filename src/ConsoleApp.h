@@ -8,6 +8,8 @@ public:
     int init();
     ConsoleApp();
 
+    static bool FileExists(const char* path);
+
 private:
     SentimentAnalyzer controller;
     bool running;
@@ -24,6 +26,7 @@ private:
     void ClassifyCommentMenu();
     void PreffixSearchMenu();
     void RankingMenu();
+    void KaggleMenu();
     void Error(const char* errorMessage);
     void PressAnyKey(int y, int x);
     void StatusMessage(const char* message);
@@ -37,8 +40,7 @@ private:
     void PrintString(const char* str, int y, int x, int pair);
     int MoveCursor(int y, int x, int options, int yInit);
 
-    bool FileExists(const char* path);
-
     void DumpInvertedFile(std::ofstream& of, const WordEntry* entry);
+    void KaggleChallenge(std::string path);
 
 };

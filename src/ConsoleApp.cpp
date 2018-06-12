@@ -5,6 +5,7 @@
 #include <list>
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 #define MAIN_MENU_ANCHOR_POINT_X 4
 #define MAIN_MENU_ANCHOR_POINT_Y 2
@@ -439,8 +440,20 @@ void ConsoleApp::PreffixSearchMenu()
 
 void ConsoleApp::RankingMenu()
 {
+    constexpr int lowerBound = 1;
+    constexpr int upperBound = 100;
+
     int opt = 0;
+    int rankPositions;
+
     std::vector<WordEntry*> rankedList;
+
+    clear();
+    PrintString("Ranking size: ", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
+    PrintString("(1 - 100)", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
+    rankPositions = UserIntegerSelect(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 15, lowerBound, upperBound);
+
+    clear();
     PrintString(" By positive polarity", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
     PrintString(" By negative polarity", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
     PrintString(" By ocurrences", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
@@ -464,11 +477,20 @@ void ConsoleApp::RankingMenu()
     std::vector<WordEntry*>::iterator it;
     std::list<std::string> text;
 
-    for(it = rankedList.begin(); it != rankedList.end(); it++)
+    int position = 0;
+    for(it = rankedList.begin(); it != rankedList.end() && position < rankPositions; it++)
     {
         std::stringstream ss;
-        ss << (*it)->word << " - " << "Score: " << (*it)->averageScore << " - Count: " << (*it)->count;
+
+        ss << std::setw(3) << position + 1
+           << std::setw(25) << (*it)->word
+           << std::setw(10) << " Score: "
+           << std::setw(6) << (*it)->averageScore
+           << std::setw(10) << " Count: "
+           << std::setw(5) << (*it)->count;
+
         text.push_back(ss.str());
+        position++;
     }
 
     Reader(text);
@@ -607,6 +629,43 @@ std::string ConsoleApp::UserInput(int y, int x)
     std::string str(inputStr);
 
     return str;
+}
+
+int ConsoleApp::UserIntegerSelect(int y, int x, int lowerBound, int upperBound)
+{
+    bool selectionActive = true;
+    int currentValue = lowerBound;
+    wchar_t option;
+
+    while(selectionActive)
+    {
+        move(y, x);
+        PrintString(std::to_string(currentValue).c_str(), y, x, 3);
+
+        option = wgetch(stdscr);
+        switch(option)
+        {
+            case KEY_UP:
+                if(currentValue < upperBound)
+                {
+                    currentValue++;
+                }
+                break;
+
+            case KEY_DOWN:
+                if(currentValue > lowerBound)
+                {
+                    currentValue--;
+                }
+                break;
+            
+            case 10:
+                selectionActive = false;
+                break;
+        }
+    }
+
+    return currentValue;
 }
 
 /* prints a string to the console at (x, y) */

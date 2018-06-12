@@ -43,6 +43,10 @@ private:
     /* user input with cursor at (x,y) */
     std::string UserInput(int y, int x);
 
+    /* user integer selection at (x, y) */
+    /* lower and upper bounds are inclusive */
+    int UserIntegerSelect(int y, int x, int lowerBound, int upperBound);
+
     /* print to screen */
     void PrintString(const char* str, int y, int x, int pair);
     int MoveCursor(int y, int x, int options, int yInit);

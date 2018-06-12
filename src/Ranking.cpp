@@ -4,7 +4,7 @@
 #include <vector>
 #include "HashTable.h"
 
-constexpr int tam_rank = 10;
+constexpr int tam_rank = 100;
 
 void Ranking::make_rank(HashTable& hTable, unsigned int min_ocurr)
 {

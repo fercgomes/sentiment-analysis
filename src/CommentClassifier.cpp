@@ -12,7 +12,7 @@ CommentClassifier::CommentClassifier(HashTable* we) :
 {
     if(!LoadWeights("modifiers.txt", "inverters.txt"))
     {
-        throw "Couldn't find the classifiers files modifiers.txt and inverters.txt";
+        //throw "Couldn't find the classifiers files modifiers.txt and inverters.txt";
     }
 }
 
@@ -36,7 +36,7 @@ bool CommentClassifier::LoadWeights(const char* modPath, const char* invPath)
         fp.open(invPath);
         if(ConsoleApp::FileExists(invPath))
         {
-            while(fp >> word >> weight)
+            while(fp >> word)
             {
                 inverters.emplace_back(word);
             }
@@ -85,7 +85,7 @@ double CommentClassifier::GetScore(std::string comment)
 {
     constexpr double baseWeight = 1;
     double accumulatedWeight = 0;
-    double inversionsCount = 0; 
+    int inversionsCount = 0; 
     double totalScore = 0;
     double totalWords = 0;
     double resultingScore = 0;
@@ -106,6 +106,7 @@ double CommentClassifier::GetScore(std::string comment)
         {
             accumulatedWeight += modifiers[word];
             lg << "weight + " << modifiers[word] << std::endl;
+            lg << "current ac = " << accumulatedWeight << std::endl;
         }
         /* check if it's a inverter */
         else if(IsInverter(word))
@@ -120,9 +121,25 @@ double CommentClassifier::GetScore(std::string comment)
             /* there's a valid entry */
             if(wEntry != nullptr)
             {
-                double totalWeight = baseWeight + std::pow(-1, inversionsCount) * accumulatedWeight;
-                totalScore += totalWeight * wEntry->averageScore;
+                double totalWeight;
+                double newScore;
+
+                /* odd number of inversions, and no accumulated weight = invert the polarity around the center */
+                if(inversionsCount % 2 != 0 && !accumulatedWeight)
+                {
+                    newScore = 2.0f - std::abs(2.0f - wEntry->averageScore);
+                }
+                else
+                {
+                    totalWeight = baseWeight + std::pow(-1, inversionsCount) * accumulatedWeight;
+                    newScore = totalWeight * wEntry->averageScore;
+                }
+
+                totalScore += newScore;
                 totalWords += 1; 
+
+                lg << "normal score = " << wEntry->averageScore << std::endl;
+                lg << "new score = " << totalWeight * wEntry->averageScore << std::endl;
                 lg << "ac weight = " << accumulatedWeight << std::endl;
                 lg << "inv = " << inversionsCount << std::endl;
                 lg << std::endl;

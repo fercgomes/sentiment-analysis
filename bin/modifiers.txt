@@ -1,6 +1,6 @@
-really 0.1
-very 0.1
-extremely 0.2
-quite 0.1
-rather 0.1
-too 0.1
+really 0.25
+very 0.25
+extremely 0.3
+quite 0.25
+rather 0.25
+too 0.25

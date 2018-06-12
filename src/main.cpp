@@ -8,10 +8,14 @@
 
 #include <iostream>
 #include "ConsoleApp.h"
-#include "Logger.h"
 
 int main(int argc, char **argv)
 {
-    ConsoleApp app;
-    return app.init();
+    /* initializes the application */
+    // ConsoleApp app;
+    // return app.init();
+
+    SentimentAnalyzer a;
+    a.ImportFile("/home/grad/fcgomes/Desktop/sentiment-analysis/bin/grande.txt");
+    return 0;
 }

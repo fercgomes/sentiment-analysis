@@ -134,7 +134,11 @@ void SentimentAnalyzer::ImportFile(const char* filename)
         fp.close();
     }
 
+
     /* done loading */
+
+    /* initializes ranking */
+    ranking.make_rank(*wordEntries, 0);
 }
 
 /* loads lines of text containing stopwords into a set */
@@ -199,9 +203,46 @@ double SentimentAnalyzer::GetCommentWeightedScore(std::string comment)
     return classifier->GetScore(comment);
 }
 
+void SentimentAnalyzer::GetCommentFileScore(const char* inPath, const char* outPath)
+{
+    std::ifstream in_fp;
+    std::ofstream out_fp;
+
+    in_fp.open(inPath);
+    out_fp.open(outPath);
+
+    std::string comment;
+    int i = 0;
+
+    while(!in_fp.eof())
+    {
+        std::getline(in_fp, comment);
+        double commentScore = GetCommentScore(comment);
+        out_fp << "Comment #" << i << ": " << commentScore << std::endl;
+
+        i++;
+    }
+
+}
+
 std::list<std::string> SentimentAnalyzer::GetPreffixes(std::string pref)
 {
     return preffixes->getPreffixes(pref);
+}
+
+std::vector<WordEntry*>& SentimentAnalyzer::GetBestRank()
+{
+    return ranking.best_score;
+}
+
+std::vector<WordEntry*>& SentimentAnalyzer::GetWorstRank()
+{
+    return ranking.worst_score;
+}
+
+std::vector<WordEntry*>& SentimentAnalyzer::GetOcurrencesRank()
+{
+    return ranking.ocurrences;
 }
 
 void SentimentAnalyzer::PrintInvertedFile(std::string word)

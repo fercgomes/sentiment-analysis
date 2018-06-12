@@ -1,3 +1,8 @@
+/*
+    ConsoleApp
+    A graphical interface implemented with the ncurses library.
+*/
+
 #pragma once
 #include "SentimentAnalyzer.h"
 
@@ -8,6 +13,7 @@ public:
     int init();
     ConsoleApp();
 
+    /* checks whether a file exists */
     static bool FileExists(const char* path);
 
 private:
@@ -15,10 +21,12 @@ private:
     bool running;
     bool goodToGo;
 
+    /* path to dataset containing classified comments */
     std::string pathData;
+    /* path to stopwords */
     std::string pathSW;
 
-    /* Menu */
+    /* Menu screens */
     void MainMenu();
     void LoadDataMenu();
     void WordClassificationMenu();
@@ -36,11 +44,14 @@ private:
     std::string UserInput(int y, int x);
 
     /* print to screen */
-    /* TODO: add colors */
     void PrintString(const char* str, int y, int x, int pair);
     int MoveCursor(int y, int x, int options, int yInit);
 
+    /* prints the inverted file of a word into a file */
     void DumpInvertedFile(std::ofstream& of, const WordEntry* entry);
+
+    /* an interface for the kaggle challenge
+       input: kaggle input file */
     void KaggleChallenge(std::string path);
 
 };

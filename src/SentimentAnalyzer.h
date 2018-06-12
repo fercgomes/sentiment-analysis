@@ -2,6 +2,7 @@
 #include "HashTable.h"
 #include "Trie.h"
 #include "CommentClassifier.h"
+#include "Ranking.h"
 #include <unordered_set>
 
 class SentimentAnalyzer
@@ -30,8 +31,18 @@ public:
     /* TODO: */
     double GetCommentWeightedScore(std::string comment);
 
+    /* classifies a file containing movie reviews */
+    void GetCommentFileScore(const char* inPath, const char* outPath);
+
     /* returns a vector containing all words starting with 'pref' */
     std::list<std::string> GetPreffixes(std::string pref);
+
+    /* returns a list with the ranked best words */
+    std::vector<WordEntry*>& GetBestRank();
+    /* returns a list with the ranked worst words */
+    std::vector<WordEntry*>& GetWorstRank();
+    /* returns a list with the ranked words by ocurrence  */
+    std::vector<WordEntry*>& GetOcurrencesRank();
 
     /* prints all ocurrences of a word */
     void PrintInvertedFile(std::string word);
@@ -42,6 +53,7 @@ private:
     HashTable *wordEntries;
     TrieTree *preffixes;
     std::unordered_set<std::string> stopWords;
+    Ranking ranking;
 
     bool isStopWord(std::string word);
 };

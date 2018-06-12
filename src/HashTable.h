@@ -16,9 +16,9 @@
 #define REHASH_FACTOR           1.3     /* the factor by which the hash size will be increased in rehashing */
 #define TABLESIZE_FACTOR        1.2     /* the factor by which the initial hash table size will be calculated */
 
-class HashTable {
+class HashTable
+{
     private:
-        std::list<WordEntry*> *hashTable;
         std::size_t tableSize;
 
         unsigned int collisions;
@@ -35,6 +35,8 @@ class HashTable {
         void rehash();
 
     public:
+        std::list<WordEntry*> *hashTable;
+
         HashTable();
         HashTable(std::size_t);
         ~HashTable();

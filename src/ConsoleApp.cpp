@@ -1,6 +1,10 @@
 #include "ConsoleApp.h"
+#include "Ranking.h"
 #include <curses.h>
 #include <ostream>
+#include <list>
+#include <string>
+#include <sstream>
 
 #define MAIN_MENU_ANCHOR_POINT_X 4
 #define MAIN_MENU_ANCHOR_POINT_Y 2
@@ -11,14 +15,15 @@ ConsoleApp::ConsoleApp()
     goodToGo = false;
 }
 
+/* the interface's main loop */
 int ConsoleApp::init()
 {
+    /* ncurses initialization */
     initscr();
     noecho();
     cbreak();
     keypad(stdscr, TRUE);
     curs_set(0);
-
     start_color();
     init_pair(1, COLOR_BLACK, COLOR_WHITE);
     init_pair(2, COLOR_WHITE, COLOR_BLACK);
@@ -37,6 +42,10 @@ int ConsoleApp::init()
     return 0;
 }
 
+/*
+    Most of the options in the main menu can only be accessed
+    if the data has been loaded.
+*/
 void ConsoleApp::MainMenu()
 {
     int opt;
@@ -146,6 +155,7 @@ void ConsoleApp::MainMenu()
     }
 }
 
+/* loads the files and sets the flags */
 void ConsoleApp::LoadDataMenu()
 {
     bool menuActive = true;
@@ -231,7 +241,7 @@ void ConsoleApp::LoadDataMenu()
             /* comments file path */
             case 3:
                 pathData = UserInput(MAIN_MENU_ANCHOR_POINT_Y + 5, MAIN_MENU_ANCHOR_POINT_X + 15);
-
+                // pathData = "/home/grad/fcgomes/Desktop/sentiment-analyzer/bin/grande.txt";
                 /* check if file exists */
                 if(!FileExists(pathData.c_str()))
                 {
@@ -251,7 +261,6 @@ void ConsoleApp::LoadDataMenu()
                     /* load stopwords */
                     if(controller.removeStopWords)
                     {
-                        /* TODO: get status from function */
                         controller.LoadStopWords(pathSW.c_str());
                     }
 
@@ -277,6 +286,7 @@ void ConsoleApp::LoadDataMenu()
     while(menuActive);
 }
 
+/* asks user for a word and returns the current classification */
 void ConsoleApp::WordClassificationMenu()
 {
     std::string word;
@@ -310,6 +320,7 @@ void ConsoleApp::WordClassificationMenu()
 
 }
 
+/* asks user for a word and prints the inverted file in a file */
 void ConsoleApp::WordOcurrencesMenu()
 {
     bool menuActive = true;
@@ -360,6 +371,7 @@ void ConsoleApp::WordOcurrencesMenu()
     while(menuActive);
 }
 
+/* asks user for a string, and classifies it using the data loaded */
 void ConsoleApp::ClassifyCommentMenu()
 {
     int opt = 0;
@@ -390,10 +402,11 @@ void ConsoleApp::ClassifyCommentMenu()
 
         /* load from file */
         case 1:
-            Error("Not implemented.");
-            // PrintString("Path: ", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
-            // path = UserInput(MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 6);
-            /* TODO: classify file function */
+            PrintString("Path: ", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
+            path = UserInput(MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 6);
+            
+            controller.GetCommentFileScore(path.c_str(), "comment-output.txt");
+            StatusMessage("Done.");
 
             break;
 
@@ -403,6 +416,7 @@ void ConsoleApp::ClassifyCommentMenu()
     }
 }
 
+/* asks user for a preffix and shows the corresponding words */
 void ConsoleApp::PreffixSearchMenu()
 {
     std::string pref;
@@ -425,9 +439,42 @@ void ConsoleApp::PreffixSearchMenu()
 
 void ConsoleApp::RankingMenu()
 {
+    int opt = 0;
+    std::vector<WordEntry*> rankedList;
+    PrintString(" By positive polarity", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
+    PrintString(" By negative polarity", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
+    PrintString(" By ocurrences", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
 
+    opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 3, opt);
+    switch(opt)
+    {
+        case 0:
+            rankedList = controller.GetBestRank();
+            break;
+
+        case 1:
+            rankedList = controller.GetWorstRank();
+            break;
+
+        case 2:
+            rankedList = controller.GetOcurrencesRank();
+            break;
+    }
+
+    std::vector<WordEntry*>::iterator it;
+    std::list<std::string> text;
+
+    for(it = rankedList.begin(); it != rankedList.end(); it++)
+    {
+        std::stringstream ss;
+        ss << (*it)->word << " - " << "Score: " << (*it)->averageScore << " - Count: " << (*it)->count;
+        text.push_back(ss.str());
+    }
+
+    Reader(text);
 }
 
+/* asks the user for the kaggle input data, and creates a submission file */
 void ConsoleApp::KaggleMenu()
 {
     clear();
@@ -448,6 +495,7 @@ void ConsoleApp::KaggleMenu()
     }
 }
 
+/* shows a error message and waits for input */
 void ConsoleApp::Error(const char* errorMessage)
 {
     clear();
@@ -455,6 +503,7 @@ void ConsoleApp::Error(const char* errorMessage)
     PressAnyKey(MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X);
 }
 
+/* waits for user interaction */
 void ConsoleApp::PressAnyKey(int y, int x)
 {
     move(y, x);
@@ -462,12 +511,15 @@ void ConsoleApp::PressAnyKey(int y, int x)
     getch();
 }
 
+/* shows a status message and waits user */
 void ConsoleApp::StatusMessage(const char* message)
 {
     clear();
     PrintString(message, MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 3);
     PressAnyKey(MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X);
 }
+
+/* shows a on-screen reader */
 void ConsoleApp::Reader(std::list<std::string> text)
 {
     constexpr int onScreen = 20;
@@ -542,6 +594,7 @@ void ConsoleApp::Reader(std::list<std::string> text)
     while(active);
 }
 
+/* gets a input string from user */
 std::string ConsoleApp::UserInput(int y, int x)
 {
     move(y, x);
@@ -556,6 +609,7 @@ std::string ConsoleApp::UserInput(int y, int x)
     return str;
 }
 
+/* prints a string to the console at (x, y) */
 void ConsoleApp::PrintString(const char* str, int y, int x, int pair)
 {
     move(y, x);
@@ -564,6 +618,7 @@ void ConsoleApp::PrintString(const char* str, int y, int x, int pair)
     attroff(COLOR_PAIR(pair));
 }
 
+/* interaction loop for the menu cursor */
 int ConsoleApp::MoveCursor(int y, int x, int options, int yInit)
 {
     constexpr int cPair = 2;
@@ -606,12 +661,14 @@ int ConsoleApp::MoveCursor(int y, int x, int options, int yInit)
     return cursor;
 }
 
+/* check wheter a file exists */
 bool ConsoleApp::FileExists(const char* path)
 {
     std::ifstream infile(path);
     return infile.good();
 }
 
+/* prints a word's inverted file in an opened file */
 void ConsoleApp::DumpInvertedFile(std::ofstream& of, const WordEntry* entry)
 {
     auto invFile = entry->invertedFile;
@@ -629,6 +686,7 @@ void ConsoleApp::DumpInvertedFile(std::ofstream& of, const WordEntry* entry)
     } 
 }
 
+/* parses a kaggle input file, and classifies the comments */
 void ConsoleApp::KaggleChallenge(std::string path)
 {
     std::ifstream inFile;

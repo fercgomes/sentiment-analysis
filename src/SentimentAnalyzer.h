@@ -8,11 +8,16 @@
 class SentimentAnalyzer
 {
 public:
+    HashTable *wordEntries;
+    TrieTree *preffixes;
+    std::unordered_set<std::string> stopWords;
+    CommentClassifier* classifier;
+    Ranking ranking;
+
     /* flags */
     bool convertLowerCase;
     bool filterNonAlpha;
     bool removeStopWords;
-    CommentClassifier* classifier;
 
     SentimentAnalyzer();    
     SentimentAnalyzer(std::size_t initSize);
@@ -26,13 +31,10 @@ public:
     /* returns a pointer to a word's entry */
     WordEntry* GetWordEntry(std::string word);
     /* returns the sentiment score for a word */
-    float GetCommentScore(std::string comment);    
-
-    /* TODO: */
-    double GetCommentWeightedScore(std::string comment);
+    float GetCommentScore(std::string comment, int method);    
 
     /* classifies a file containing movie reviews */
-    void GetCommentFileScore(const char* inPath, const char* outPath);
+    void GetCommentFileScore(const char* inPath, const char* outPath, int method);
 
     /* returns a vector containing all words starting with 'pref' */
     std::list<std::string> GetPreffixes(std::string pref);
@@ -49,11 +51,6 @@ public:
     /* prints all words within the structure */
     void PrintWords();
 
-private:
-    HashTable *wordEntries;
-    TrieTree *preffixes;
-    std::unordered_set<std::string> stopWords;
-    Ranking ranking;
 
     bool isStopWord(std::string word);
 };

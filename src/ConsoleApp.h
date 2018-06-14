@@ -12,6 +12,7 @@ class ConsoleApp
 public:
     int init();
     ConsoleApp();
+    ~ConsoleApp();
 
     /* checks whether a file exists */
     static bool FileExists(const char* path);
@@ -56,6 +57,6 @@ private:
 
     /* an interface for the kaggle challenge
        input: kaggle input file */
-    void KaggleChallenge(std::string path);
+    void KaggleChallenge(std::string path, int method);
 
 };

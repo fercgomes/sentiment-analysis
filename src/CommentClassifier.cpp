@@ -12,8 +12,10 @@ CommentClassifier::CommentClassifier(HashTable* we) :
 {
     if(!LoadWeights("modifiers.txt", "inverters.txt"))
     {
-        //throw "Couldn't find the classifiers files modifiers.txt and inverters.txt";
+        throw "Couldn't find the classifiers files modifiers.txt and inverters.txt";
     }
+
+    saturationFactor = 1.5f;
 }
 
 bool CommentClassifier::LoadWeights(const char* modPath, const char* invPath)
@@ -81,7 +83,53 @@ bool CommentClassifier::IsInverter(std::string word)
     }
 }
 
-double CommentClassifier::GetScore(std::string comment)
+double CommentClassifier::GetScore(std::string comment, int method)
+{
+    switch(method)
+    {
+        case 0:
+            return RegularMean(comment);
+
+        case 1:
+            return QuantitySaturatedMean(comment);
+        
+        default:
+            throw "No function.";
+
+    }
+}
+
+double CommentClassifier::RegularMean(std::string comment)
+{
+    float total = 0, average = 0, wordScore, wordCount = 0;
+    WordEntry* wEntry;
+    std::string word;
+
+    std::stringstream ss(comment);
+    while(ss.tellg() != -1)
+    {
+        word.clear();
+        ss >> word;
+        wEntry = wordEntries->search(word);
+        if(wEntry != nullptr)
+        {
+            /* word has a score */
+            wordScore = wEntry->averageScore;
+
+            total += wordScore;
+            wordCount += 1;
+        }
+    }
+
+    if(total)
+    {
+        average = total / wordCount;
+    }
+
+    return average;
+}
+
+double CommentClassifier::QuantitySaturatedMean(std::string comment)
 {
     constexpr double baseWeight = 1;
     double accumulatedWeight = 0;
@@ -92,27 +140,22 @@ double CommentClassifier::GetScore(std::string comment)
     std::string word;
 
     std::ofstream lg;
-    lg.open("log.txt");
 
     std::stringstream ss(comment);
     while(ss.tellg() != -1)
     {
         word.clear();
         ss >> word;
-        lg << "word " << word << std::endl;
 
         /* check if it's a modifier */
         if(IsModifier(word))
         {
             accumulatedWeight += modifiers[word];
-            lg << "weight + " << modifiers[word] << std::endl;
-            lg << "current ac = " << accumulatedWeight << std::endl;
         }
         /* check if it's a inverter */
         else if(IsInverter(word))
         {
             inversionsCount++;
-            lg << "inv + " << std::endl;
         }
         /* tries to get a valid score for word */
         else
@@ -131,18 +174,12 @@ double CommentClassifier::GetScore(std::string comment)
                 }
                 else
                 {
-                    totalWeight = baseWeight + std::pow(-1, inversionsCount) * accumulatedWeight;
+                    totalWeight = baseWeight + std::pow(-1, inversionsCount) * accumulatedWeight * 1.3f;
                     newScore = totalWeight * wEntry->averageScore;
                 }
 
                 totalScore += newScore;
                 totalWords += 1; 
-
-                lg << "normal score = " << wEntry->averageScore << std::endl;
-                lg << "new score = " << totalWeight * wEntry->averageScore << std::endl;
-                lg << "ac weight = " << accumulatedWeight << std::endl;
-                lg << "inv = " << inversionsCount << std::endl;
-                lg << std::endl;
             }
 
             /* resets the variables */
@@ -150,14 +187,10 @@ double CommentClassifier::GetScore(std::string comment)
             inversionsCount = 0;
         }
     }
-    lg << "total score = " << totalScore << std::endl;
-    lg << "total words = " << totalWords << std::endl;
 
     if(totalScore && totalWords)
     {
         resultingScore = totalScore / totalWords;
-        lg << "result = " << resultingScore << std::endl;
-        lg.close();
         if(resultingScore <= 4)
         {
             return resultingScore;
@@ -169,7 +202,6 @@ double CommentClassifier::GetScore(std::string comment)
     }
     else
     {
-        lg.close();
         return 0;
     }
 }

@@ -16,6 +16,9 @@ ConsoleApp::ConsoleApp()
     goodToGo = false;
 }
 
+ConsoleApp::~ConsoleApp()
+{}
+
 /* the interface's main loop */
 int ConsoleApp::init()
 {
@@ -174,12 +177,12 @@ void ConsoleApp::LoadDataMenu()
         PrintString(" Back", MAIN_MENU_ANCHOR_POINT_Y + 7, MAIN_MENU_ANCHOR_POINT_X, 2);
 
         /* print flags */
-        if(controller.convertLowerCase)
+        if(!controller.convertLowerCase)
             PrintString("false", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X + 30, 4);
         else
             PrintString("true ", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X + 30, 3);
 
-        if(controller.filterNonAlpha)
+        if(!controller.filterNonAlpha)
             PrintString("false", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 32, 4);
         else
             PrintString("true ", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 32, 3);
@@ -187,6 +190,7 @@ void ConsoleApp::LoadDataMenu()
 
         PrintString(pathSW.c_str(), MAIN_MENU_ANCHOR_POINT_Y + 4, MAIN_MENU_ANCHOR_POINT_X + 20, 3);
         PrintString(pathData.c_str(), MAIN_MENU_ANCHOR_POINT_Y + 5, MAIN_MENU_ANCHOR_POINT_X + 15, 3);
+
         opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 6, opt);
         switch(opt)
         {
@@ -376,10 +380,18 @@ void ConsoleApp::WordOcurrencesMenu()
 void ConsoleApp::ClassifyCommentMenu()
 {
     int opt = 0;
+    int method = 0;
     std::string comment;
     std::string classification;
     std::string path;
     std::ofstream fp;
+
+    /* select classification method */
+    clear();
+    PrintString(" Regular mean", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
+    PrintString(" Quantity saturated mean", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
+    PrintString(" Saturated mean", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
+    method = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 3, opt);
 
     clear();
     PrintString(" Load comment from standard input", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
@@ -394,7 +406,8 @@ void ConsoleApp::ClassifyCommentMenu()
             PrintString("Comment:", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
 
             comment = UserInput(MAIN_MENU_ANCHOR_POINT_Y + 4, MAIN_MENU_ANCHOR_POINT_X);
-            classification = std::to_string(controller.GetCommentWeightedScore(comment));
+            /* TODO: get method */
+            classification = std::to_string(controller.GetCommentScore(comment, method));
 
             PrintString("Sentiment: ", MAIN_MENU_ANCHOR_POINT_Y + 6, MAIN_MENU_ANCHOR_POINT_X, 2);
             PrintString(classification.c_str(), MAIN_MENU_ANCHOR_POINT_Y + 6, MAIN_MENU_ANCHOR_POINT_X + 11, 1);
@@ -406,9 +419,20 @@ void ConsoleApp::ClassifyCommentMenu()
             PrintString("Path: ", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
             path = UserInput(MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 6);
             
-            controller.GetCommentFileScore(path.c_str(), "comment-output.txt");
-            StatusMessage("Done.");
-
+            if(path.empty())
+            {
+                Error("No path given.");
+            }
+            else if(!FileExists(path.c_str()))
+            {
+                return Error("File doesn't exist.");
+            }
+            else
+            {
+                /* TODO: get method */
+                controller.GetCommentFileScore(path.c_str(), "comment-output.txt", method);
+                StatusMessage("Done.");
+            } 
             break;
 
         /* back */
@@ -440,18 +464,28 @@ void ConsoleApp::PreffixSearchMenu()
 
 void ConsoleApp::RankingMenu()
 {
-    constexpr int lowerBound = 1;
-    constexpr int upperBound = 100;
+    constexpr int maxSizeLowerBound = 1;
+    constexpr int maxSizeUpperBound = 1000;
+    constexpr int minOcurrencesLowerBound = 1;
+    constexpr int minOcurrencesUpperBound = 1000;
 
     int opt = 0;
     int rankPositions;
+    int rankFilter;
 
     std::vector<WordEntry*> rankedList;
 
     clear();
     PrintString("Ranking size: ", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
-    PrintString("(1 - 100)", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
-    rankPositions = UserIntegerSelect(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 15, lowerBound, upperBound);
+    rankPositions = UserIntegerSelect(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 15, maxSizeLowerBound, maxSizeUpperBound);
+
+    clear();
+    PrintString("Ranking ocurrence filter: ", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
+    rankFilter = UserIntegerSelect(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 26, minOcurrencesLowerBound, minOcurrencesUpperBound);
+
+    /* builds ranking */
+    controller.ranking.SetOptions(rankFilter, rankPositions);
+    controller.ranking.LoadRank(*(controller.wordEntries));
 
     clear();
     PrintString(" By positive polarity", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
@@ -512,7 +546,14 @@ void ConsoleApp::KaggleMenu()
     }
     else
     {
-        KaggleChallenge(path);
+
+        /* select classification method */
+        clear();
+        PrintString(" Regular mean", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
+        PrintString(" Quantity saturated mean", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
+        int method = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2, 0);
+
+        KaggleChallenge(path, method);
         StatusMessage("Done.");
     }
 }
@@ -640,6 +681,7 @@ int ConsoleApp::UserIntegerSelect(int y, int x, int lowerBound, int upperBound)
     while(selectionActive)
     {
         move(y, x);
+        clrtoeol();
         PrintString(std::to_string(currentValue).c_str(), y, x, 3);
 
         option = wgetch(stdscr);
@@ -746,7 +788,7 @@ void ConsoleApp::DumpInvertedFile(std::ofstream& of, const WordEntry* entry)
 }
 
 /* parses a kaggle input file, and classifies the comments */
-void ConsoleApp::KaggleChallenge(std::string path)
+void ConsoleApp::KaggleChallenge(std::string path, int method)
 {
     std::ifstream inFile;
     std::ofstream outFile;
@@ -781,7 +823,7 @@ void ConsoleApp::KaggleChallenge(std::string path)
             sentenceID = std::stoi(sentenceIDstr);
             std::getline(inFile, comment);
 
-            auto score = std::round(controller.GetCommentScore(comment));
+            auto score = std::round(controller.GetCommentScore(comment, method));
             outFile << phraseID << "," << score << std::endl;
         }
     }

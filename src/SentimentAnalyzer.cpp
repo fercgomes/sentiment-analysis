@@ -69,6 +69,8 @@ void SentimentAnalyzer::ImportFile(const char* filename)
     fp.open(filename);
     bool running = true;
 
+    std::ofstream logfile("words.txt");
+
     if(fp.is_open())
     {
         /* get line count */
@@ -107,10 +109,10 @@ void SentimentAnalyzer::ImportFile(const char* filename)
                 }
                 if(filterNonAlpha)
                 {
-                    std::remove_if(word.begin(), word.end(), [](char c)
+                    word.erase(std::remove_if(word.begin(), word.end(), [](char c)
                     {
-                        return (c < 'a' || c > 'z');
-                    });
+                        return !isalpha(c);
+                    }), word.end());
                 }
 
                 if(word.size() > 1 && !isStopWord(word))
@@ -119,6 +121,8 @@ void SentimentAnalyzer::ImportFile(const char* filename)
                     wordEntries->push(word, commentScore, commentID, wordPos);
                     /* pushes into Trie Tree */
                     preffixes->push(word);
+
+                    logfile << word << std::endl;
                 }
 
                 i = wordPos + word.size();
@@ -136,9 +140,6 @@ void SentimentAnalyzer::ImportFile(const char* filename)
 
 
     /* done loading */
-
-    /* initializes ranking */
-    ranking.make_rank(*wordEntries, 0);
 }
 
 /* loads lines of text containing stopwords into a set */
@@ -168,42 +169,12 @@ WordEntry* SentimentAnalyzer::GetWordEntry(std::string word)
  * Given a string containing a sentence, it calculates the
  * average score with each words individual score.
  ***********************************************************/
-float SentimentAnalyzer::GetCommentScore(std::string comment)
+float SentimentAnalyzer::GetCommentScore(std::string comment, int method)
 {
-    float total = 0, average = 0, wordScore, wordCount = 0;
-    WordEntry* wEntry;
-    std::string word;
-
-    std::stringstream ss(comment);
-    while(ss.tellg() != -1)
-    {
-        word.clear();
-        ss >> word;
-        wEntry = GetWordEntry(word);
-        if(wEntry != nullptr)
-        {
-            /* word has a score */
-            wordScore = wEntry->averageScore;
-
-            total += wordScore;
-            wordCount += 1;
-        }
-    }
-
-    if(total)
-    {
-        average = total / wordCount;
-    }
-
-    return average;
+    return classifier->GetScore(comment, method);
 }
 
-double SentimentAnalyzer::GetCommentWeightedScore(std::string comment)
-{
-    return classifier->GetScore(comment);
-}
-
-void SentimentAnalyzer::GetCommentFileScore(const char* inPath, const char* outPath)
+void SentimentAnalyzer::GetCommentFileScore(const char* inPath, const char* outPath, int method)
 {
     std::ifstream in_fp;
     std::ofstream out_fp;
@@ -217,7 +188,8 @@ void SentimentAnalyzer::GetCommentFileScore(const char* inPath, const char* outP
     while(!in_fp.eof())
     {
         std::getline(in_fp, comment);
-        double commentScore = GetCommentScore(comment);
+        /* TODO: method */
+        double commentScore = GetCommentScore(comment, method);
         out_fp << "Comment #" << i << ": " << commentScore << std::endl;
 
         i++;
@@ -232,17 +204,17 @@ std::list<std::string> SentimentAnalyzer::GetPreffixes(std::string pref)
 
 std::vector<WordEntry*>& SentimentAnalyzer::GetBestRank()
 {
-    return ranking.best_score;
+    return ranking.bestScores;
 }
 
 std::vector<WordEntry*>& SentimentAnalyzer::GetWorstRank()
 {
-    return ranking.worst_score;
+    return ranking.worstScores;
 }
 
 std::vector<WordEntry*>& SentimentAnalyzer::GetOcurrencesRank()
 {
-    return ranking.ocurrences;
+    return ranking.mostFrequent;
 }
 
 void SentimentAnalyzer::PrintInvertedFile(std::string word)
@@ -265,6 +237,8 @@ void SentimentAnalyzer::PrintWords()
 
 bool SentimentAnalyzer::isStopWord(std::string word)
 {
+     std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+
     if(removeStopWords)
     {
         /* if word is in the set */

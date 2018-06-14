@@ -7,13 +7,17 @@
 
 class Ranking
 {
-
     public:
-        void make_rank(HashTable& hTable, unsigned int min_ocurr);
+        std::vector<WordEntry*> bestScores;
+        std::vector<WordEntry*> worstScores;
+        std::vector<WordEntry*> mostFrequent;
 
-        std::vector<WordEntry*> best_score;
-        std::vector<WordEntry*> worst_score;
-        std::vector<WordEntry*> ocurrences;
+        int minOcurrences;
+        int maxSize;
 
-        void print_rank(std::vector<WordEntry*> vetor,int mode,int k);
+        Ranking();
+        void SetOptions(int minOcurrences, int maxSize);
+        void LoadRank(HashTable& hTable);
+        void ResetRank();
+
 };

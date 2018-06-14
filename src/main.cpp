@@ -14,9 +14,4 @@ int main(int argc, char **argv)
     /* initializes the application */
     ConsoleApp app;
     return app.init();
-
-    // SentimentAnalyzer a;
-    // a.ImportFile("grande.txt");
-    // std::cout << "done" << std::endl;
-    // return 0;
 }

@@ -4,29 +4,41 @@
 #include <vector>
 #include "HashTable.h"
 
-constexpr int tam_rank = 100;
+Ranking::Ranking()
+{
+    SetOptions(0, 100);
+}
 
-void Ranking::make_rank(HashTable& hTable, unsigned int min_ocurr)
+void Ranking::SetOptions(int minOcur, int mSize)
+{
+    minOcurrences = minOcur;
+    maxSize = mSize;
+}
+
+void Ranking::LoadRank(HashTable& hTable)
 {
     std::size_t i = 0;
-    int inseridos = 0;
+    int insertedCount = 0;
     float current_lbest,
           current_lworst;
     int current_locur;
     std::list<WordEntry*>::iterator it;
 
-    while( inseridos < tam_rank )
+    ResetRank();
+
+    while(insertedCount < maxSize)
     {
-        if( !hTable.hashTable[i].empty() )
+        if(!hTable.hashTable[i].empty())
         {
             it = hTable.hashTable[i].begin();
-            while((it != hTable.hashTable[i].end()) && (inseridos<tam_rank))
+            while((it != hTable.hashTable[i].end()) && (insertedCount < maxSize))
             {
-                if( (*it)->count > min_ocurr){
-                best_score.push_back(*it);
-                worst_score.push_back(*it);
-                ocurrences.push_back(*it);
-                inseridos++;
+                if((*it)->count > minOcurrences)
+                {
+                    bestScores.push_back(*it);
+                    worstScores.push_back(*it);
+                    mostFrequent.push_back(*it);
+                    insertedCount++;
                 }
                 it++;
             }
@@ -35,113 +47,75 @@ void Ranking::make_rank(HashTable& hTable, unsigned int min_ocurr)
     }
     i--;
 
-    std::sort(best_score.begin(), best_score.end(), [](WordEntry* a, WordEntry* b)
+    std::sort(bestScores.begin(), bestScores.end(), [](WordEntry* a, WordEntry* b)
     {
         return a->averageScore > b->averageScore;
     });
 
-    std::sort(worst_score.begin(),worst_score.end(), [](WordEntry* a, WordEntry* b)
+    std::sort(worstScores.begin(),worstScores.end(), [](WordEntry* a, WordEntry* b)
     {
         return a->averageScore < b->averageScore;
     });
 
-    std::sort(ocurrences.begin(),ocurrences.end(), [](WordEntry* a, WordEntry* b)
+    std::sort(mostFrequent.begin(),mostFrequent.end(), [](WordEntry* a, WordEntry* b)
     {
         return a->count > b->count;
     });
 
-    current_lbest = best_score.back()->averageScore;
-    current_lworst = worst_score.back()->averageScore;
-    current_locur = ocurrences.back()->count;
+    current_lbest = bestScores.back()->averageScore;
+    current_lworst = worstScores.back()->averageScore;
+    current_locur = mostFrequent.back()->count;
 
     while(i < hTable.size())
     {
-
         while(it != hTable.hashTable[i].end())
         {
-            if((*it)->averageScore > current_lbest && ( (*it)->count > min_ocurr))
+            if((*it)->averageScore > current_lbest && ( (*it)->count > minOcurrences))
             {
+                bestScores.pop_back();
+                bestScores.push_back(*it);
 
-                best_score.pop_back();
-                best_score.push_back(*it);
-
-                std::sort(best_score.begin(), best_score.end(), [](WordEntry* a, WordEntry* b)
+                std::sort(bestScores.begin(), bestScores.end(), [](WordEntry* a, WordEntry* b)
                 {
                     return a->averageScore > b->averageScore;
                 });
 
-                current_lbest = best_score.back()->averageScore;
-
+                current_lbest = bestScores.back()->averageScore;
             }
-            if((*it)->averageScore < current_lworst && ( (*it)->count > min_ocurr))
+            if((*it)->averageScore < current_lworst && ( (*it)->count > minOcurrences))
             {
-                worst_score.pop_back();
-                worst_score.push_back(*it);
+                worstScores.pop_back();
+                worstScores.push_back(*it);
 
-                std::sort(worst_score.begin(),worst_score.end(), [](WordEntry* a, WordEntry* b)
+                std::sort(worstScores.begin(),worstScores.end(), [](WordEntry* a, WordEntry* b)
                 {
                     return a->averageScore < b->averageScore;
                 });
 
-                current_lworst = worst_score.back()->averageScore;
-
+                current_lworst = worstScores.back()->averageScore;
             }
             if((*it)->count > current_locur )
             {
-                ocurrences.pop_back();
-                ocurrences.push_back(*it);
+                mostFrequent.pop_back();
+                mostFrequent.push_back(*it);
 
-                std::sort(ocurrences.begin(),ocurrences.end(), [](WordEntry* a, WordEntry* b)
+                std::sort(mostFrequent.begin(),mostFrequent.end(), [](WordEntry* a, WordEntry* b)
                 {
                     return a->count > b->count;
                 });
 
-                current_locur = ocurrences.back()->count;
-
+                current_locur = mostFrequent.back()->count;
             }
             it++;
         }
         i++;
         it = hTable.hashTable[i].begin();
-
-
     }
 }
 
-void Ranking::print_rank(std::vector<WordEntry*> vetor,int mode,int k)
+void Ranking::ResetRank()
 {
-    int i;
-
-    if(mode == 0)
-    {
-        std::ofstream saida("saida0.txt");
-
-        saida << "Melhores escores: \n";
-        for(i=0; i<k; i++)
-        {
-            saida << vetor[i]->averageScore<<" "<<vetor[i]->word<<"\n";
-        }
-        saida.close();
-    }
-    else if(mode == 1)
-    {
-        std::ofstream saida("saida1.txt");
-        saida << "Piores escores: \n";
-        for(i=0; i<k; i++)
-        {
-            saida << vetor[i]->averageScore<<" "<<vetor[i]->word<<"\n";
-        }
-        saida.close();
-    }
-    else if(mode == 2)
-    {
-        std::ofstream saida("saida2.txt");
-        saida <<"frequencias: \n";
-        for(i=0; i<k; i++)
-        {
-            saida << vetor[i]->count <<" "<<vetor[i]->word<<"\n";
-        }
-        saida.close();
-
-    }
+    bestScores.clear();
+    worstScores.clear();
+    mostFrequent.clear();
 }

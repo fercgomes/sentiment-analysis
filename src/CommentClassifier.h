@@ -7,12 +7,18 @@ class CommentClassifier
 {
 
 public:
+    double saturationFactor;
+
     CommentClassifier(HashTable* wordEntries);
     bool LoadWeights(const char* modifiersPath, const char* invertersFile);
     bool IsModifier(std::string word);
     bool IsInverter(std::string word);
 
-    double GetScore(std::string comment);
+    /* methods */
+    double GetScore(std::string comment, int method);
+
+    double RegularMean(std::string comment);
+    double QuantitySaturatedMean(std::string comment);
 
 private:
     HashTable* wordEntries;

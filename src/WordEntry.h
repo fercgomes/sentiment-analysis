@@ -27,6 +27,7 @@ public:
     WordEntry(std::string word);
 
     void AddOcurrence(int commentID, int commentOffset, float commentScore);
+    void RoundAll();
     void UpdateSandardDeviation();
     void PrintOcurrences();
     std::list<CommentEntry>& GetInvertFile();

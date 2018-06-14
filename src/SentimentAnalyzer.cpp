@@ -1,12 +1,19 @@
 #include "SentimentAnalyzer.h"
 #include <sstream>
 #include <algorithm>
+#include <chrono>
+#include <fstream>
+
+#include "ConsoleApp.h"
 
 #define INIT_SIZE_FACTOR 1.3
 
+/* logging purposes */
+std::ofstream logger("logger.txt");
+
 SentimentAnalyzer::SentimentAnalyzer()
 {
-    // std::cout << "SA: initializing." << std::endl;
+    logger << "SA: initializing." << std::endl;
 
     wordEntries = new HashTable();
     preffixes = new TrieTree;
@@ -22,7 +29,7 @@ SentimentAnalyzer::SentimentAnalyzer()
 
 SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
 {
-    // std::cout << "SA: initializing." << std::endl;
+    logger << "SA: initializing." << std::endl;
 
     wordEntries = new HashTable(size);
     preffixes = new TrieTree;
@@ -38,7 +45,7 @@ SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
 
 SentimentAnalyzer::~SentimentAnalyzer()
 {
-    // std::cout << "SA: destroying." << std::endl;
+    logger << "SA: destroying." << std::endl;
 
     delete wordEntries;
     delete preffixes;
@@ -60,17 +67,20 @@ SentimentAnalyzer::~SentimentAnalyzer()
  ******************************************************/
 void SentimentAnalyzer::ImportFile(const char* filename)
 {
-    // std::cout << "SA: importing from file " << filename << std::endl;
-    // if(convertLowerCase) std::cout << "SA: converting words to lowercase." << std::endl;
-    // if(filterNonAlpha) std::cout << "SA: filtering out non alphabetic characters." << std::endl;
-    // if(removeStopWords) std::cout << "SA: removing stop words." << std::endl;
+    logger << "SA: importing from file " << filename << std::endl;
+    if(convertLowerCase) logger << "SA: converting words to lowercase." << std::endl;
+    if(filterNonAlpha) logger << "SA: filtering out non alphabetic characters." << std::endl;
+    if(removeStopWords) logger << "SA: removing stop words." << std::endl;
 
     std::ifstream fp;
     fp.open(filename);
     bool running = true;
+    double done;
 
     std::ofstream logfile("words.txt");
 
+    /* starts clock */
+    auto start = std::chrono::steady_clock::now();
     if(fp.is_open())
     {
         /* get line count */
@@ -86,6 +96,8 @@ void SentimentAnalyzer::ImportFile(const char* filename)
         std::string line;
         std::string word;
         int commentID = 0;
+        std::size_t wordCount = 0;
+
         std::getline(fp, line);
         while(running)
         {
@@ -117,6 +129,7 @@ void SentimentAnalyzer::ImportFile(const char* filename)
 
                 if(word.size() > 1 && !isStopWord(word))
                 {
+                    wordCount++;
                     /* pushes into hash table */
                     wordEntries->push(word, commentScore, commentID, wordPos);
                     /* pushes into Trie Tree */
@@ -134,12 +147,20 @@ void SentimentAnalyzer::ImportFile(const char* filename)
                 std::getline(fp, line);
                 commentID++;
             }
+
+            done = (double)commentID / (double)lineCount;
+
         }
         fp.close();
+        auto end = std::chrono::steady_clock::now();
+        std::chrono::duration<double> elapsed = end - start;
+        logger << "Loading " << filename << " took " << elapsed.count() << "seconds." << std::endl;
+        logger << wordCount << " words loaded." << std::endl;
     }
 
-
     /* done loading */
+    /* logs the hashtable */
+    wordEntries->printHashTable();
 }
 
 /* loads lines of text containing stopwords into a set */
@@ -163,17 +184,13 @@ WordEntry* SentimentAnalyzer::GetWordEntry(std::string word)
     return (*wordEntries)[word];
 }
 
-/************************************************************
- * GetCommentScore
- * 
- * Given a string containing a sentence, it calculates the
- * average score with each words individual score.
- ***********************************************************/
-float SentimentAnalyzer::GetCommentScore(std::string comment, int method)
+/* selects the score method */
+double SentimentAnalyzer::GetCommentScore(std::string comment, int method)
 {
     return classifier->GetScore(comment, method);
 }
 
+/* classifies a whole file of comments */
 void SentimentAnalyzer::GetCommentFileScore(const char* inPath, const char* outPath, int method)
 {
     std::ifstream in_fp;
@@ -226,7 +243,7 @@ void SentimentAnalyzer::PrintInvertedFile(std::string word)
     }
     else
     {
-        std::cout << word << " not found." << std::endl;
+        logger << word << " not found." << std::endl;
     }
 }
 

@@ -17,6 +17,9 @@ public:
     /* checks whether a file exists */
     static bool FileExists(const char* path);
 
+    /* print to screen */
+    static void PrintString(const char* str, int y, int x, int pair);
+
 private:
     SentimentAnalyzer controller;
     bool running;
@@ -48,8 +51,6 @@ private:
     /* lower and upper bounds are inclusive */
     int UserIntegerSelect(int y, int x, int lowerBound, int upperBound);
 
-    /* print to screen */
-    void PrintString(const char* str, int y, int x, int pair);
     int MoveCursor(int y, int x, int options, int yInit);
 
     /* prints the inverted file of a word into a file */

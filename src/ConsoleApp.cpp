@@ -390,8 +390,7 @@ void ConsoleApp::ClassifyCommentMenu()
     clear();
     PrintString(" Regular mean", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
     PrintString(" Quantity saturated mean", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
-    PrintString(" Saturated mean", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
-    method = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 3, opt);
+    method = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2, opt);
 
     clear();
     PrintString(" Load comment from standard input", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
@@ -672,6 +671,7 @@ std::string ConsoleApp::UserInput(int y, int x)
     return str;
 }
 
+/* gets an integer from user */
 int ConsoleApp::UserIntegerSelect(int y, int x, int lowerBound, int upperBound)
 {
     bool selectionActive = true;

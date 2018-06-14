@@ -3,8 +3,11 @@
 */
 
 #include <fstream>
+#include <chrono>
 #include "HashTable.h"
 #include "WordEntry.h"
+
+extern std::ofstream logger;
 
 /*
     Initialization procedure
@@ -13,7 +16,7 @@
 */
 HashTable::HashTable()
 {
-    // std::cout << "HASHTABLE: intializing with default size of " << HASHTABLE_DEFAULT_SIZE << "." << std::endl;
+    logger << "HASHTABLE: intializing with default size of " << HASHTABLE_DEFAULT_SIZE << "." << std::endl;
     
     /* allocate with default size */
     hashTable = new std::list<WordEntry*> [HASHTABLE_DEFAULT_SIZE];
@@ -27,7 +30,7 @@ HashTable::HashTable()
 HashTable::HashTable(std::size_t elements)
 {
     std::size_t calculatedSize = std::ceil(TABLESIZE_FACTOR * elements);
-    // std::cout << "HASHTABLE: intializing with given size of " << calculatedSize << "." << std::endl;
+    logger << "HASHTABLE: intializing with given size of " << calculatedSize << "." << std::endl;
 
     tableSize = calculatedSize;
     hashTable = new std::list<WordEntry*> [calculatedSize];
@@ -39,7 +42,7 @@ HashTable::HashTable(std::size_t elements)
 
 HashTable::~HashTable()
 {
-    // std::cout << "HASHTABLE: destroying." << std::endl;
+    logger << "HASHTABLE: destroying." << std::endl;
     
     /* deallocate the list */
     delete[] hashTable;
@@ -74,7 +77,7 @@ bool HashTable::isPrime(unsigned long number)
     return true;
 }
 
-unsigned long HashTable::nextPrime(unsigned long a)
+unsigned long long HashTable::nextPrime(unsigned long long a)
 {
     while (!isPrime(++a)){}
     return a;
@@ -83,7 +86,8 @@ unsigned long HashTable::nextPrime(unsigned long a)
 /* expands the hash table by a constant factor */
 void HashTable::expand(std::size_t baseSize)
 {
-    // std::cout << "HASHTABLE: Resizing to base size of " << baseSize << std::endl;
+    logger << "HASHTABLE: Resizing to base size of " << baseSize << std::endl;
+    auto start = std::chrono::steady_clock::now();
 
     std::size_t newSize = nextPrime(baseSize);
     std::list<WordEntry*> *newHashTable = new std::list<WordEntry*> [newSize];
@@ -113,6 +117,10 @@ void HashTable::expand(std::size_t baseSize)
     listLimitFlag = false;
     
     expansionCount++;
+
+    auto end = std::chrono::steady_clock::now();
+    std::chrono::duration<double> elapsed = end - start;
+    logger << "Expansion took " << elapsed.count() << " seconds." << std::endl;
 }
 
 void HashTable::rehash()
@@ -122,14 +130,14 @@ void HashTable::rehash()
 }
 
 /* returns the ratio (occupied slots) / (total slots) */
-float HashTable::occupationRatio()
+double HashTable::occupationRatio()
 {
-    float occupiedSlots = 0;
+    double occupiedSlots = 0;
     for(std::size_t i = 0; i < tableSize; i++)
     {
         if(!hashTable[i].empty()) occupiedSlots++;
     }
-    float result = occupiedSlots / tableSize;
+    double result = occupiedSlots / tableSize;
     return result;
 }
 
@@ -138,7 +146,7 @@ float HashTable::occupationRatio()
 bool HashTable::shouldExpand()
 {
     if(occupationRatio() >= MAX_OCCUPANCY_RATIO) return true;
-    // else if(listLimitFlag) return true;
+    else if(listLimitFlag) return true;
     else return false;
 }
 
@@ -152,7 +160,7 @@ unsigned long long HashTable::stringToInteger(std::string name)
     int i = 0;
     for(character = name.end(); character != name.begin(); character--){
         characterInt = (unsigned long long) (*character);
-        stringKey = stringKey + (characterInt * std::pow(32, i));
+        stringKey = stringKey + (characterInt * std::pow(8, i));
         i++;
     }
 
@@ -161,19 +169,19 @@ unsigned long long HashTable::stringToInteger(std::string name)
 
 /* hashes a key using the division method */
 /* hash(key) = key % (tableSize/modulo) */
-unsigned long HashTable::hash(unsigned long long key)
+unsigned long long HashTable::hash(unsigned long long key)
 {
     return key % tableSize; 
 }
 
-unsigned long HashTable::hash(unsigned long long key, int modulo)
+unsigned long long HashTable::hash(unsigned long long key, int modulo)
 {
     return key % modulo;
 }
 
 /* Hash Table Operations */
 /* inserts a string into the hash table */
-void HashTable::push(std::string word, float score, int id, int offset)
+void HashTable::push(std::string word, double score, int id, int offset)
 {
     if(!word.size())
     {
@@ -207,11 +215,12 @@ void HashTable::push(std::string word, float score, int id, int offset)
         if(shouldExpand())
         {
             rehash(); 
-            // std::cout << "Hash Table will be expanded!" << std::endl;
+            logger << "Hash Table will be expanded!" << std::endl;
         }
     }
 }
 
+/* returns a pointer to a word's entry */
 WordEntry* HashTable::search(std::string word)
 {
     if(word.empty())
@@ -247,37 +256,37 @@ WordEntry* HashTable::operator[](std::string word)
 
 void HashTable::printReport()
 {
-    std::cout << "====================================" << std::endl;
-    std::cout << "Details about the Hash Table: " << std::endl;
-    std::cout << "Table size:\t" << tableSize << std::endl;
-    std::cout << "Occupancy rate:\t" << occupationRatio() << std::endl;
-    std::cout << "Collisions:\t" << collisions << std::endl;
-    std::cout << "Expansions:\t" << expansionCount << std::endl;
-    std::cout << "====================================" << std::endl;
-    std::cout << "PARAMETERS:" << std::endl;
-    std::cout << "HASHTABLE_DEFAULT_SIZE:\t\t" << HASHTABLE_DEFAULT_SIZE << std::endl;
-    std::cout << "MAX_OCCUPANCY_RATIO:\t\t" << MAX_OCCUPANCY_RATIO << std::endl;
-    std::cout << "MAX_CHAINED_OCCUPANCY:\t\t" << MAX_CHAINED_OCCUPANCY << std::endl; 
-    std::cout << "REHASH_FACTOR:\t\t\t" << REHASH_FACTOR << std::endl;         
-    std::cout << "TABLESIZE_FACTOR:\t\t" << TABLESIZE_FACTOR << std::endl; 
+    logger << "====================================" << std::endl;
+    logger << "Details about the Hash Table: " << std::endl;
+    logger << "Table size:\t" << tableSize << std::endl;
+    logger << "Occupancy rate:\t" << occupationRatio() << std::endl;
+    logger << "Collisions:\t" << collisions << std::endl;
+    logger << "Expansions:\t" << expansionCount << std::endl;
+    logger << "====================================" << std::endl;
+    logger << "PARAMETERS:" << std::endl;
+    logger << "HASHTABLE_DEFAULT_SIZE:\t\t" << HASHTABLE_DEFAULT_SIZE << std::endl;
+    logger << "MAX_OCCUPANCY_RATIO:\t\t" << MAX_OCCUPANCY_RATIO << std::endl;
+    logger << "MAX_CHAINED_OCCUPANCY:\t\t" << MAX_CHAINED_OCCUPANCY << std::endl; 
+    logger << "REHASH_FACTOR:\t\t\t" << REHASH_FACTOR << std::endl;         
+    logger << "TABLESIZE_FACTOR:\t\t" << TABLESIZE_FACTOR << std::endl; 
 }
 
 void HashTable::printHashTable()
 {
-    std::cout << "Hash Table (showing linked lists): " << std::endl;
+    logger << "Hash Table (showing linked lists): " << std::endl;
     for(std::size_t i = 0; i < tableSize; i++)
     {
-        std::cout << i << ":\t";
-        if(hashTable[i].empty()) std::cout << "NULL";
+        logger << i << ":\t";
+        if(hashTable[i].empty()) logger << "NULL";
         else
         {
             std::list<WordEntry*>::iterator it;
             for(it = hashTable[i].begin(); it != hashTable[i].end(); it++)
             {
-                std::cout << (*it)->word << " -> "; 
+                logger << (*it)->word << " -> "; 
             }
         }
-        std::cout << std::endl;
+        logger << std::endl;
     }
 
     printReport();
@@ -292,7 +301,7 @@ void HashTable::printWords()
         for(it = hTable.begin(); it != hTable.end(); it++)
         {
             auto word = (*it)->word;
-            std::cout << word << std::endl; 
+            logger << word << std::endl; 
         }
     }
 }

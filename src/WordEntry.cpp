@@ -6,7 +6,7 @@
     CommentEntry class
 */
 
-CommentEntry::CommentEntry(int id, int offset, float score)
+CommentEntry::CommentEntry(int id, int offset, double score)
 {
    commentID = id;
    commentScore = score;
@@ -31,7 +31,7 @@ WordEntry::WordEntry(std::string wd)
     standardDeviation = 0.0f;
 }
 
-void WordEntry::AddOcurrence(int id, int offset, float score)
+void WordEntry::AddOcurrence(int id, int offset, double score)
 {
     /* sets new average */
     averageScore = (count * averageScore + score) / (count + 1);

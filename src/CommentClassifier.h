@@ -9,14 +9,19 @@ class CommentClassifier
 public:
     double saturationFactor;
 
+    /* default constructor */
     CommentClassifier(HashTable* wordEntries);
+
+    /* loads files with modifiers and inverters */
     bool LoadWeights(const char* modifiersPath, const char* invertersFile);
+
     bool IsModifier(std::string word);
     bool IsInverter(std::string word);
 
-    /* methods */
+    /* method selector */
     double GetScore(std::string comment, int method);
 
+    /* methods */
     double RegularMean(std::string comment);
     double QuantitySaturatedMean(std::string comment);
 

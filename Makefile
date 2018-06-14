@@ -6,7 +6,12 @@ TARGET = bin/main
 SRCEXT = cpp
 SOURCES = $(shell find $(SRCDIR) -type f -name *.$(SRCEXT))
 OBJECTS = $(patsubst $(SRCDIR)/%,$(BUILDDIR)/%,$(SOURCES:.$(SRCEXT)=.o))
-CFLAGS = -g -Wall -std=c++11
+
+# Debug
+# CFLAGS = -g -Wall -std=c++11
+
+# Release
+CFLAGS = -O4 -std=c++11
 
 LIB = -lncurses
 INC = 

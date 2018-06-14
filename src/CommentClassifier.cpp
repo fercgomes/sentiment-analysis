@@ -101,7 +101,7 @@ double CommentClassifier::GetScore(std::string comment, int method)
 
 double CommentClassifier::RegularMean(std::string comment)
 {
-    float total = 0, average = 0, wordScore, wordCount = 0;
+    double total = 0, average = 0, wordScore, wordCount = 0;
     WordEntry* wEntry;
     std::string word;
 

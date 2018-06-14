@@ -25,13 +25,14 @@ public:
 
     /* loads a .txt file with the comments and scores */
     void ImportFile(const char* filename);
+
     /* loads a .txt file containing stopwords from the english language */
     void LoadStopWords(const char* filename);
 
     /* returns a pointer to a word's entry */
     WordEntry* GetWordEntry(std::string word);
     /* returns the sentiment score for a word */
-    float GetCommentScore(std::string comment, int method);    
+    double GetCommentScore(std::string comment, int method);    
 
     /* classifies a file containing movie reviews */
     void GetCommentFileScore(const char* inPath, const char* outPath, int method);

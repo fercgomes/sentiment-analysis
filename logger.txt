@@ -1,0 +1,2 @@
+SA: initializing.
+HASHTABLE: intializing with default size of 10.

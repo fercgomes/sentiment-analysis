@@ -19,13 +19,15 @@ void Ranking::LoadRank(HashTable& hTable)
 {
     std::size_t i = 0;
     int insertedCount = 0;
-    float current_lbest,
-          current_lworst;
-    int current_locur;
-    std::list<WordEntry*>::iterator it;
 
+    double current_lbest,
+           current_lworst;
+    int    current_locur;
+
+    std::list<WordEntry*>::iterator it;
     ResetRank();
 
+    /* builds the initial ordered array */
     while(insertedCount < maxSize)
     {
         if(!hTable.hashTable[i].empty())
@@ -47,6 +49,7 @@ void Ranking::LoadRank(HashTable& hTable)
     }
     i--;
 
+    /* sorts them */
     std::sort(bestScores.begin(), bestScores.end(), [](WordEntry* a, WordEntry* b)
     {
         return a->averageScore > b->averageScore;
@@ -66,6 +69,7 @@ void Ranking::LoadRank(HashTable& hTable)
     current_lworst = worstScores.back()->averageScore;
     current_locur = mostFrequent.back()->count;
 
+    /* inserts the other elements by comparing with the last in each ranking, and re-sorts the array */
     while(i < hTable.size())
     {
         while(it != hTable.hashTable[i].end())

@@ -7,8 +7,6 @@ class CommentClassifier
 {
 
 public:
-    double saturationFactor;
-
     /* default constructor */
     CommentClassifier(HashTable* wordEntries);
 
@@ -24,9 +22,11 @@ public:
     /* methods */
     double RegularMean(std::string comment);
     double QuantitySaturatedMean(std::string comment);
+    double FilteredMean(std::string comment);
 
 private:
     HashTable* wordEntries;
+
     std::unordered_map<std::string, double> modifiers;
     std::list<std::string> inverters;
 

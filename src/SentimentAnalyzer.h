@@ -3,8 +3,10 @@
 #include "Trie.h"
 #include "CommentClassifier.h"
 #include "Ranking.h"
+#include "ConsoleApp.h"
 #include <unordered_set>
 
+class ConsoleApp;
 class SentimentAnalyzer
 {
 public:
@@ -14,13 +16,16 @@ public:
     CommentClassifier* classifier;
     Ranking ranking;
 
+    /* points back to the application that owns this object */
+    ConsoleApp *backPointer;
+
     /* flags */
     bool convertLowerCase;
     bool filterNonAlpha;
     bool removeStopWords;
 
-    SentimentAnalyzer();    
-    SentimentAnalyzer(std::size_t initSize);
+    SentimentAnalyzer(ConsoleApp *app);    
+    SentimentAnalyzer(std::size_t initSize, ConsoleApp* app);
     ~SentimentAnalyzer();
 
     /* loads a .txt file with the comments and scores */

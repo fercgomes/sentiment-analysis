@@ -5,13 +5,14 @@
 #include <fstream>
 
 #include "ConsoleApp.h"
+#include <curses.h>
 
 #define INIT_SIZE_FACTOR 1.3
 
 /* logging purposes */
 std::ofstream logger("logger.txt");
 
-SentimentAnalyzer::SentimentAnalyzer()
+SentimentAnalyzer::SentimentAnalyzer(ConsoleApp *app)
 {
     logger << "SA: initializing." << std::endl;
 
@@ -23,11 +24,13 @@ SentimentAnalyzer::SentimentAnalyzer()
     filterNonAlpha = false;
     removeStopWords = false;
 
+    backPointer = app;
+
     /* initializes the classifier */
     classifier = new CommentClassifier(wordEntries);
 }
 
-SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
+SentimentAnalyzer::SentimentAnalyzer(std::size_t size, ConsoleApp *app)
 {
     logger << "SA: initializing." << std::endl;
 
@@ -38,6 +41,8 @@ SentimentAnalyzer::SentimentAnalyzer(std::size_t size)
     convertLowerCase = false;
     filterNonAlpha = false;
     removeStopWords = false;
+
+    backPointer = app;
 
     /* initializes the classifier */
     classifier = new CommentClassifier(wordEntries);
@@ -75,9 +80,6 @@ void SentimentAnalyzer::ImportFile(const char* filename)
     std::ifstream fp;
     fp.open(filename);
     bool running = true;
-    double done;
-
-    std::ofstream logfile("words.txt");
 
     /* starts clock */
     auto start = std::chrono::steady_clock::now();
@@ -96,7 +98,6 @@ void SentimentAnalyzer::ImportFile(const char* filename)
         std::string line;
         std::string word;
         int commentID = 0;
-        std::size_t wordCount = 0;
 
         std::getline(fp, line);
         while(running)
@@ -129,13 +130,10 @@ void SentimentAnalyzer::ImportFile(const char* filename)
 
                 if(word.size() > 1 && !isStopWord(word))
                 {
-                    wordCount++;
                     /* pushes into hash table */
                     wordEntries->push(word, commentScore, commentID, wordPos);
                     /* pushes into Trie Tree */
                     preffixes->push(word);
-
-                    logfile << word << std::endl;
                 }
 
                 i = wordPos + word.size();
@@ -148,14 +146,16 @@ void SentimentAnalyzer::ImportFile(const char* filename)
                 commentID++;
             }
 
-            done = (double)commentID / (double)lineCount;
-
+            int loadProgress = ( (double)commentID / (double)lineCount * 100 );
+            backPointer->UpdateProgress(0, 0, loadProgress);
         }
         fp.close();
+
+        /* logging */
         auto end = std::chrono::steady_clock::now();
         std::chrono::duration<double> elapsed = end - start;
-        logger << "Loading " << filename << " took " << elapsed.count() << "seconds." << std::endl;
-        logger << wordCount << " words loaded." << std::endl;
+        logger << "Loading " << filename << " took " << elapsed.count() << " seconds." << std::endl;
+        logger << wordEntries->storedElements() << " words loaded." << std::endl;
     }
 
     /* done loading */

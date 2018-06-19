@@ -47,6 +47,7 @@ class HashTable
         ~HashTable();
 
         std::size_t size();
+        std::size_t storedElements();
 
         void push(std::string word, double commentScore, int commentID, int wordPos);
         WordEntry* search(std::string);

@@ -6,6 +6,7 @@
 #pragma once
 #include "SentimentAnalyzer.h"
 
+class SentimentAnalyzer;
 class ConsoleApp
 {
 
@@ -18,10 +19,11 @@ public:
     static bool FileExists(const char* path);
 
     /* print to screen */
-    static void PrintString(const char* str, int y, int x, int pair);
+    void PrintString(const char* str, int y, int x, int pair);
+    void UpdateProgress(int y, int x, int progress);
 
 private:
-    SentimentAnalyzer controller;
+    SentimentAnalyzer *controller;
     bool running;
     bool goodToGo;
 
@@ -52,6 +54,7 @@ private:
     int UserIntegerSelect(int y, int x, int lowerBound, int upperBound);
 
     int MoveCursor(int y, int x, int options, int yInit);
+    void LoadFile(const char* path);
 
     /* prints the inverted file of a word into a file */
     void DumpInvertedFile(std::ofstream& of, const WordEntry* entry);

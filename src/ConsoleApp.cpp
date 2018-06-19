@@ -14,10 +14,13 @@ ConsoleApp::ConsoleApp()
 {
     running = true;
     goodToGo = false;
+    controller = new SentimentAnalyzer(this);
 }
 
 ConsoleApp::~ConsoleApp()
-{}
+{
+    delete controller;
+}
 
 /* the interface's main loop */
 int ConsoleApp::init()
@@ -177,12 +180,12 @@ void ConsoleApp::LoadDataMenu()
         PrintString(" Back", MAIN_MENU_ANCHOR_POINT_Y + 7, MAIN_MENU_ANCHOR_POINT_X, 2);
 
         /* print flags */
-        if(!controller.convertLowerCase)
+        if(!controller->convertLowerCase)
             PrintString("false", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X + 30, 4);
         else
             PrintString("true ", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X + 30, 3);
 
-        if(!controller.filterNonAlpha)
+        if(!controller->filterNonAlpha)
             PrintString("false", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 32, 4);
         else
             PrintString("true ", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 32, 3);
@@ -196,29 +199,29 @@ void ConsoleApp::LoadDataMenu()
         {
             /* convert lowercase */
             case 0:
-                if(controller.convertLowerCase)
+                if(controller->convertLowerCase)
                 {
                     PrintString("false", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X + 30, 4);
-                    controller.convertLowerCase = false;
+                    controller->convertLowerCase = false;
                 }
                 else
                 {
                     PrintString("true ", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X + 30, 3);
-                    controller.convertLowerCase = true;
+                    controller->convertLowerCase = true;
                 }
                 break;
 
             /* filter non alpha */
             case 1:
-                if(controller.filterNonAlpha)
+                if(controller->filterNonAlpha)
                 {
                     PrintString("false", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 32, 4);
-                    controller.filterNonAlpha = false;
+                    controller->filterNonAlpha = false;
                 }
                 else
                 {
                     PrintString("true ", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X + 32, 3);
-                    controller.filterNonAlpha = true;
+                    controller->filterNonAlpha = true;
                 }
                 break;
 
@@ -235,11 +238,11 @@ void ConsoleApp::LoadDataMenu()
 
                 if(pathSW.empty())
                 {
-                    controller.removeStopWords = false;
+                    controller->removeStopWords = false;
                 }
                 else
                 {
-                    controller.removeStopWords = true;
+                    controller->removeStopWords = true;
                 }
                 break;
 
@@ -261,16 +264,13 @@ void ConsoleApp::LoadDataMenu()
                 /* there's data to be loaded */
                 if(!pathData.empty() && !goodToGo)
                 {
-                    clear();
-
                     /* load stopwords */
-                    if(controller.removeStopWords)
+                    if(controller->removeStopWords)
                     {
-                        controller.LoadStopWords(pathSW.c_str());
+                        controller->LoadStopWords(pathSW.c_str());
                     }
 
-                    /* TODO: get status from import function */
-                    controller.ImportFile(pathData.c_str());
+                    LoadFile(pathData.c_str());
                     goodToGo = true;
 
                     StatusMessage("Done loading.");
@@ -301,7 +301,7 @@ void ConsoleApp::WordClassificationMenu()
     PrintString("Word: ", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
     word = UserInput(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 6);
 
-    wEntry = controller.GetWordEntry(word);
+    wEntry = controller->GetWordEntry(word);
     if(wEntry != nullptr)
     {
         auto score = std::to_string(wEntry->averageScore);
@@ -341,7 +341,7 @@ void ConsoleApp::WordOcurrencesMenu()
         word = UserInput(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 7);
         
         /* check word exists */
-        WordEntry *wEntry = controller.GetWordEntry(word);
+        WordEntry *wEntry = controller->GetWordEntry(word);
         if(wEntry != nullptr)
         {
             PrintString(" Print to file", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
@@ -390,7 +390,8 @@ void ConsoleApp::ClassifyCommentMenu()
     clear();
     PrintString(" Regular mean", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
     PrintString(" Quantity saturated mean", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
-    method = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2, opt);
+    PrintString(" Filtered mean", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
+    method = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 3, opt);
 
     clear();
     PrintString(" Load comment from standard input", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
@@ -405,8 +406,7 @@ void ConsoleApp::ClassifyCommentMenu()
             PrintString("Comment:", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
 
             comment = UserInput(MAIN_MENU_ANCHOR_POINT_Y + 4, MAIN_MENU_ANCHOR_POINT_X);
-            /* TODO: get method */
-            classification = std::to_string(controller.GetCommentScore(comment, method));
+            classification = std::to_string(controller->GetCommentScore(comment, method));
 
             PrintString("Sentiment: ", MAIN_MENU_ANCHOR_POINT_Y + 6, MAIN_MENU_ANCHOR_POINT_X, 2);
             PrintString(classification.c_str(), MAIN_MENU_ANCHOR_POINT_Y + 6, MAIN_MENU_ANCHOR_POINT_X + 11, 1);
@@ -428,8 +428,7 @@ void ConsoleApp::ClassifyCommentMenu()
             }
             else
             {
-                /* TODO: get method */
-                controller.GetCommentFileScore(path.c_str(), "comment-output.txt", method);
+                controller->GetCommentFileScore(path.c_str(), "comment-output.txt", method);
                 StatusMessage("Done.");
             } 
             break;
@@ -449,7 +448,7 @@ void ConsoleApp::PreffixSearchMenu()
     clear();
     PrintString("Preffix: ", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
     pref = UserInput(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 9);
-    prefList = controller.GetPreffixes(pref);
+    prefList = controller->GetPreffixes(pref);
 
     if(prefList.empty())
     {
@@ -483,8 +482,8 @@ void ConsoleApp::RankingMenu()
     rankFilter = UserIntegerSelect(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X + 26, minOcurrencesLowerBound, minOcurrencesUpperBound);
 
     /* builds ranking */
-    controller.ranking.SetOptions(rankFilter, rankPositions);
-    controller.ranking.LoadRank(*(controller.wordEntries));
+    controller->ranking.SetOptions(rankFilter, rankPositions);
+    controller->ranking.LoadRank(*(controller->wordEntries));
 
     clear();
     PrintString(" By positive polarity", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
@@ -495,15 +494,15 @@ void ConsoleApp::RankingMenu()
     switch(opt)
     {
         case 0:
-            rankedList = controller.GetBestRank();
+            rankedList = controller->GetBestRank();
             break;
 
         case 1:
-            rankedList = controller.GetWorstRank();
+            rankedList = controller->GetWorstRank();
             break;
 
         case 2:
-            rankedList = controller.GetOcurrencesRank();
+            rankedList = controller->GetOcurrencesRank();
             break;
     }
 
@@ -550,7 +549,8 @@ void ConsoleApp::KaggleMenu()
         clear();
         PrintString(" Regular mean", MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2);
         PrintString(" Quantity saturated mean", MAIN_MENU_ANCHOR_POINT_Y + 1, MAIN_MENU_ANCHOR_POINT_X, 2);
-        int method = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 2, 0);
+        PrintString(" Filtered mean", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
+        int method = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y, MAIN_MENU_ANCHOR_POINT_X, 3, 0);
 
         KaggleChallenge(path, method);
         StatusMessage("Done.");
@@ -762,6 +762,23 @@ int ConsoleApp::MoveCursor(int y, int x, int options, int yInit)
     return cursor;
 }
 
+/* updates the progress */
+void ConsoleApp::UpdateProgress(int y, int x, int done)
+{
+    auto progress = std::to_string(done);
+    auto str = (progress + "%").c_str();
+
+    PrintString("Progress: ", 0, 0, 1);
+    PrintString(str, 0, 10, 3);
+
+    refresh();
+}
+
+void ConsoleApp::LoadFile(const char* path)
+{
+    controller->ImportFile(path);
+}
+
 /* check wheter a file exists */
 bool ConsoleApp::FileExists(const char* path)
 {
@@ -823,7 +840,7 @@ void ConsoleApp::KaggleChallenge(std::string path, int method)
             sentenceID = std::stoi(sentenceIDstr);
             std::getline(inFile, comment);
 
-            auto score = std::round(controller.GetCommentScore(comment, method));
+            auto score = std::round(controller->GetCommentScore(comment, method));
             outFile << phraseID << "," << score << std::endl;
         }
     }

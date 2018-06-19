@@ -47,6 +47,7 @@ TrieTree::~TrieTree()
 
 bool TrieTree::push(std::string key)
 {
+    std::transform(key.begin(), key.end(), key.begin(), ::tolower);
     if(!key.empty() && validWord(key))
     {
         TrieNode* pCrawl = root;
@@ -95,6 +96,7 @@ bool TrieTree::search(std::string key)
 std::list<std::string> TrieTree::getPreffixes(std::string key)
 {
     std::list<std::string> preffixes;
+    std::transform(key.begin(), key.end(), key.begin(), ::tolower);
     findPreffix(key, preffixes);
 
     return preffixes;
@@ -152,7 +154,6 @@ void TrieTree::getPreffixesCrawler(TrieNode* subRoot, std::string key, std::list
 
 int TrieTree::getCharPosition(char c)
 {
-    /* TODO: check if character is alphabetic */
     c = tolower(c);
     return c - 'a'; 
 }

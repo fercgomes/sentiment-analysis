@@ -53,6 +53,20 @@ std::size_t HashTable::size()
     return tableSize;
 }
 
+std::size_t HashTable::storedElements()
+{
+    std::size_t count = 0;
+    for(int i = 0; i < tableSize; i++)
+    {
+        auto current = hashTable[i];
+        if(!current.empty())
+        {
+            count += current.size();                
+        }
+    }
+    return count;
+}
+
 /************
 Math related
 ************/
@@ -191,14 +205,15 @@ void HashTable::push(std::string word, double score, int id, int offset)
     {
         unsigned long key = hash(stringToInteger(word));
     
-        /* check if there is a collision */
-        if(!hashTable[key].empty())
-            collisions++;
 
         /* Check if word exists already */
         WordEntry* lookup = search(word);
         if(lookup == nullptr)
         {
+            /* check if there is a collision */
+            if(!hashTable[key].empty())
+                collisions++;
+
             /* no entry so far, make a new one */
             lookup = new WordEntry(word);
 

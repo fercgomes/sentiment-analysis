@@ -17,7 +17,7 @@ LIB = -lncurses
 INC = 
 
 $(TARGET): $(OBJECTS)
-	@echo " Linking..."
+	@echo "Linking..."
 	@mkdir -p bin
 	$(CC) $^ -o $(TARGET) $(LIB)
       
@@ -26,7 +26,7 @@ $(BUILDDIR)/%.o: $(SRCDIR)/%.$(SRCEXT)
 	$(CC) $(CFLAGS) $(INC) -c -o $@ $<
  
 clean:
-	@echo " Cleaning.."
+	@echo " Cleaning the mess..."
 	@echo " $(RM) -r $(BUILDDIR) $(TARGET)"; $(RM) -r $(BUILDDIR) $(TARGET)
 
 .PHONY: clean

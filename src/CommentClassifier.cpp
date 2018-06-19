@@ -14,8 +14,6 @@ CommentClassifier::CommentClassifier(HashTable* we) :
     {
         throw "Couldn't find the classifiers files modifiers.txt and inverters.txt";
     }
-
-    saturationFactor = 1.5f;
 }
 
 bool CommentClassifier::LoadWeights(const char* modPath, const char* invPath)
@@ -92,6 +90,9 @@ double CommentClassifier::GetScore(std::string comment, int method)
 
         case 1:
             return QuantitySaturatedMean(comment);
+        
+        case 2:
+            return FilteredMean(comment);
         
         default:
             throw "No function.";
@@ -204,4 +205,54 @@ double CommentClassifier::QuantitySaturatedMean(std::string comment)
     {
         return 0;
     }
+}
+
+double CommentClassifier::FilteredMean(std::string comment)
+{
+    constexpr double maxStdDev = 0.9f;
+    constexpr int minOcur = 5;
+
+    double total = 0, average = 0, wordScore, wordCount = 0;
+    WordEntry* wEntry;
+    std::string word;
+
+    std::stringstream ss(comment);
+    while(ss.tellg() != -1)
+    {
+        word.clear();
+        ss >> word;
+
+        wEntry = wordEntries->search(word);
+        if(wEntry != nullptr && wEntry->count > minOcur && wEntry->standardDeviation < maxStdDev)
+        {
+            /* word has a score */
+            wordScore = wEntry->averageScore * 7.0f;
+
+            total += wordScore;
+            wordCount += 7;
+        }
+        else if(wEntry != nullptr)
+        {
+            /* word has a score */
+            wordScore = wEntry->averageScore;
+
+            total += wordScore;
+            wordCount += 1;
+        }
+        else
+        {
+            /* word has a score */
+            wordScore = 2.0f;
+
+            total += wordScore;
+            wordCount += 1;
+        }
+    }
+
+    if(total)
+    {
+        average = total / wordCount;
+    }
+
+    return average;
 }

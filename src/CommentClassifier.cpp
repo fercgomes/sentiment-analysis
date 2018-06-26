@@ -12,7 +12,7 @@ CommentClassifier::CommentClassifier(HashTable* we) :
 {
     if(!LoadWeights("modifiers.txt", "inverters.txt"))
     {
-        //throw "Couldn't find the classifiers files modifiers.txt and inverters.txt";
+        throw "Couldn't find the classifiers files modifiers.txt and inverters.txt";
     }
 }
 

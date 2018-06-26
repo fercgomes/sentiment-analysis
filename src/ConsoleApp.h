@@ -56,9 +56,6 @@ private:
     int MoveCursor(int y, int x, int options, int yInit);
     void LoadFile(const char* path);
 
-    /* prints the inverted file of a word into a file */
-    void DumpInvertedFile(std::ofstream& of, const WordEntry* entry);
-
     /* an interface for the kaggle challenge
        input: kaggle input file */
     void KaggleChallenge(std::string path, int method);

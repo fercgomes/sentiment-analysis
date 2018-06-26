@@ -27,6 +27,7 @@ HashTable::HashTable()
     expansionCount = 0;
 }
 
+/* initializes the hash table with a given size */
 HashTable::HashTable(std::size_t elements)
 {
     std::size_t calculatedSize = std::ceil(TABLESIZE_FACTOR * elements);
@@ -35,9 +36,9 @@ HashTable::HashTable(std::size_t elements)
     tableSize = calculatedSize;
     hashTable = new std::list<WordEntry*> [calculatedSize];
 
-    collisions = 0;
-    listLimitFlag = false;
-    expansionCount = 0;
+    collisions      = 0;
+    listLimitFlag   = false;
+    expansionCount  = 0;
 }
 
 HashTable::~HashTable()
@@ -46,11 +47,6 @@ HashTable::~HashTable()
     
     /* deallocate the list */
     delete[] hashTable;
-}
-
-std::size_t HashTable::size()
-{
-    return tableSize;
 }
 
 std::size_t HashTable::storedElements()
@@ -159,22 +155,32 @@ double HashTable::occupationRatio()
 /* criteria: 80% of the list if full */
 bool HashTable::shouldExpand()
 {
-    if(occupationRatio() >= MAX_OCCUPANCY_RATIO) return true;
-    else if(listLimitFlag) return true;
+    if(occupationRatio() >= MAX_OCCUPANCY_RATIO)
+    {
+        logger << "Hit max occupancy ratio!" << std::endl;
+        return true;
+    }
+    else if(listLimitFlag)
+    {
+        logger << "Hit max chained list occupancy!" << std::endl;
+        return true;
+    }
     else return false;
 }
 
 /* converts a string into an integer */
 unsigned long long HashTable::stringToInteger(std::string name)
 {
-    unsigned long long stringKey = 0,
-                  characterInt;
+    constexpr int base = 7;
 
+    unsigned long long stringKey = 0,
+                       characterInt = 0;
+    
     std::string::iterator character;   
     int i = 0;
     for(character = name.end(); character != name.begin(); character--){
         characterInt = (unsigned long long) (*character);
-        stringKey = stringKey + (characterInt * std::pow(8, i));
+        stringKey += (characterInt * std::pow(base, i));
         i++;
     }
 
@@ -182,12 +188,13 @@ unsigned long long HashTable::stringToInteger(std::string name)
 }
 
 /* hashes a key using the division method */
-/* hash(key) = key % (tableSize/modulo) */
+/* hash(key) = key % tableSize */
 unsigned long long HashTable::hash(unsigned long long key)
 {
     return key % tableSize; 
 }
 
+/* hash(key, modulo) = key % modulo */
 unsigned long long HashTable::hash(unsigned long long key, int modulo)
 {
     return key % modulo;

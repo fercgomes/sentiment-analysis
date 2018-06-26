@@ -57,6 +57,5 @@ public:
     /* prints all words within the structure */
     void PrintWords();
 
-
     bool isStopWord(std::string word);
 };

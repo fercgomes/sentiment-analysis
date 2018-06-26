@@ -5,7 +5,6 @@
 #include <fstream>
 
 #include "ConsoleApp.h"
-#include <curses.h>
 
 #define INIT_SIZE_FACTOR 1.3
 
@@ -254,7 +253,8 @@ void SentimentAnalyzer::PrintWords()
 
 bool SentimentAnalyzer::isStopWord(std::string word)
 {
-     std::transform(word.begin(), word.end(), word.begin(), ::tolower);
+    /* all stopwords are stored in lowercase */
+    std::transform(word.begin(), word.end(), word.begin(), ::tolower);
 
     if(removeStopWords)
     {

@@ -21,7 +21,7 @@ public:
 
     /* methods */
     double RegularMean(std::string comment);
-    double QuantitySaturatedMean(std::string comment);
+    double QuantityBasedMean(std::string comment);
     double FilteredMean(std::string comment);
 
 private:

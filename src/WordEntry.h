@@ -25,13 +25,15 @@ public:
     double standardDeviation;
     unsigned int count;
     std::list<CommentEntry> invertedFile;
+    std::list<CommentEntry>::iterator currentDocument;
+    bool empty;
 
     WordEntry(std::string word);
 
     void AddOcurrence(int commentID, int commentOffset, double commentScore);
     void UpdateSandardDeviation();
     void PrintOcurrences();
-    std::list<CommentEntry>& GetInvertFile();
+    std::list<CommentEntry> GetInvertFile(int filter);
 
     /* pretty printing on stdout */
     friend std::ostream& operator<<(std::ostream& os, const WordEntry* wD);

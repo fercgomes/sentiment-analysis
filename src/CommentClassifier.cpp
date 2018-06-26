@@ -12,7 +12,7 @@ CommentClassifier::CommentClassifier(HashTable* we) :
 {
     if(!LoadWeights("modifiers.txt", "inverters.txt"))
     {
-        throw "Couldn't find the classifiers files modifiers.txt and inverters.txt";
+        //throw "Couldn't find the classifiers files modifiers.txt and inverters.txt";
     }
 }
 
@@ -89,13 +89,13 @@ double CommentClassifier::GetScore(std::string comment, int method)
             return RegularMean(comment);
 
         case 1:
-            return QuantitySaturatedMean(comment);
+            return QuantityBasedMean(comment);
         
         case 2:
             return FilteredMean(comment);
         
         default:
-            throw "No function.";
+            throw "No function implemented.";
 
     }
 }
@@ -130,7 +130,7 @@ double CommentClassifier::RegularMean(std::string comment)
     return average;
 }
 
-double CommentClassifier::QuantitySaturatedMean(std::string comment)
+double CommentClassifier::QuantityBasedMean(std::string comment)
 {
     constexpr double baseWeight = 1;
     double accumulatedWeight = 0;

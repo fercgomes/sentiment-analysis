@@ -329,7 +329,6 @@ void ConsoleApp::WordClassificationMenu()
 void ConsoleApp::WordOcurrencesMenu()
 {
     bool menuActive = true;
-    int opt = 0;
     std::string word;
     std::string fileName;
     std::ofstream fp;
@@ -344,27 +343,39 @@ void ConsoleApp::WordOcurrencesMenu()
         WordEntry *wEntry = controller->GetWordEntry(word);
         if(wEntry != nullptr)
         {
-            PrintString(" Print to file", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
-            PrintString(" Back", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
+            /* asks for filer method */
+            PrintString(" All ocurrences", MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2);
+            PrintString(" Positive polarity", MAIN_MENU_ANCHOR_POINT_Y + 3, MAIN_MENU_ANCHOR_POINT_X, 2);
+            PrintString(" Negative polarity", MAIN_MENU_ANCHOR_POINT_Y + 4, MAIN_MENU_ANCHOR_POINT_X, 2);
+            int polarityFilter = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 3, 0); 
 
-            opt = MoveCursor(MAIN_MENU_ANCHOR_POINT_Y + 2, MAIN_MENU_ANCHOR_POINT_X, 2, opt);
-            switch(opt)
+            /* converts to the readable format */
+            auto invertedFile = wEntry->GetInvertFile(polarityFilter);
+            if(invertedFile.empty())
             {
-                /* print to file */
-                case 0:
-                    fileName = word + "-inverted_file.txt";
-                    fp.open(fileName);
-                    DumpInvertedFile(fp, wEntry);
-                    fp.close();
-                    StatusMessage("Saved to file.");
-                    menuActive = false;
-                    break;
+                Error("No ocurrences found");
+            }
+            else
+            {
+                std::list<std::string> text;
 
-                /* back */
-                case 1:
-                    menuActive = false;
-                    break;
+                std::list<CommentEntry>::iterator it;
+                for(it = invertedFile.begin(); it != invertedFile.end(); it++)
+                {
+                    std::string header = "Comment ID: " + std::to_string(it->commentID) + ", Sentiment: " + std::to_string(it->commentScore) + "\n";
+                    text.emplace_back(header);
 
+                    std::list<std::size_t>::iterator offset;
+                    for(auto& offset : it->ocurrences)
+                    {
+                        text.emplace_back("Offset #" + std::to_string(offset) + "\n");
+                    }
+
+                    text.emplace_back("---------------------------------");
+                }
+
+                Reader(text);
+                menuActive = false;
             }
         }
         else
@@ -784,24 +795,6 @@ bool ConsoleApp::FileExists(const char* path)
 {
     std::ifstream infile(path);
     return infile.good();
-}
-
-/* prints a word's inverted file in an opened file */
-void ConsoleApp::DumpInvertedFile(std::ofstream& of, const WordEntry* entry)
-{
-    auto invFile = entry->invertedFile;
-
-    std::list<CommentEntry>::iterator doc;
-    for(doc = invFile.begin(); doc != invFile.end(); doc++)
-    {
-        of << "Comment #" << (*doc).commentID << ", Sentiment " << (*doc).commentScore << std::endl;
-        std::list<std::size_t>::iterator ocur;
-        auto ocurList = (*doc).ocurrences;
-        for(ocur = ocurList.begin(); ocur != ocurList.end(); ocur++)
-        {
-            of << "Offset #" << (*ocur) << std::endl;
-        }                        
-    } 
 }
 
 /* parses a kaggle input file, and classifies the comments */

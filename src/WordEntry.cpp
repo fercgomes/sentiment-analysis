@@ -1,6 +1,9 @@
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 #include "WordEntry.h"
+
+extern std::ofstream logger;
 
 /*
     CommentEntry class
@@ -29,6 +32,8 @@ WordEntry::WordEntry(std::string wd)
     averageScore = 0.0f;
     count = 0;
     standardDeviation = 0.0f;
+    currentDocument = invertedFile.begin();
+    empty = true;
 }
 
 void WordEntry::AddOcurrence(int id, int offset, double score)
@@ -36,30 +41,32 @@ void WordEntry::AddOcurrence(int id, int offset, double score)
     /* sets new average */
     averageScore = (count * averageScore + score) / (count + 1);
     count++;
-    /* TODO: update std deviation dinamically */
 
-    /* inserts ocurrence into inverted file */
-    bool found = false;
-
-    /* look for comment entry */
-    std::list<CommentEntry>::iterator it;
-    for(it = invertedFile.begin(); it != invertedFile.end(); it++)
+    /* check if strucutre hasn't been used */
+    if(empty)
     {
-        if((*it).commentID == id)
+        empty = false;
+
+        /* create new comment entry */
+        invertedFile.emplace_back(id, offset, score);
+    }
+    /* check if it is inserting in current document */
+    else
+    {
+        /* done with last document, start next one */
+        if(currentDocument->commentID != id)
         {
-            /* insert word ocurrence */
-            ((*it).ocurrences).push_back(offset);
-            UpdateSandardDeviation();
-            found = true;
+            invertedFile.emplace_back(id, offset, score);
+            currentDocument++;
+        }
+        /* still in the same document, insert word's offset */
+        else
+        {
+            currentDocument->ocurrences.push_back(offset);
         }
     }
 
-    if(!found || invertedFile.empty())
-    {
-        /* create new comment entry */
-        invertedFile.emplace_back(id, offset, score);
-        UpdateSandardDeviation();
-    }
+    UpdateSandardDeviation();
 }
 
 void WordEntry::UpdateSandardDeviation()
@@ -107,9 +114,32 @@ void WordEntry::PrintOcurrences()
     }
 }
 
-std::list<CommentEntry>& WordEntry::GetInvertFile()
+std::list<CommentEntry> WordEntry::GetInvertFile(int filter)
 {
-    return invertedFile;
+    std::list<CommentEntry> filteredInvertedFile;
+    switch(filter)
+    {
+        /* no filter */
+        case 0:
+            return invertedFile;
+
+        /* positive polarity */
+        case 1:
+            std::copy_if(invertedFile.begin(), invertedFile.end(), std::back_inserter(filteredInvertedFile), [&filter](CommentEntry ce){
+                return ce.commentScore > 2;
+            });
+
+            break;
+
+        /* negative polarity */   
+        case 2:
+            std::copy_if(invertedFile.begin(), invertedFile.end(), std::back_inserter(filteredInvertedFile), [&filter](CommentEntry ce){
+                return ce.commentScore < 2;
+            });
+            break;
+    }
+
+    return filteredInvertedFile;
 }
 
 std::ostream& operator<<(std::ostream& os, const WordEntry* dt)

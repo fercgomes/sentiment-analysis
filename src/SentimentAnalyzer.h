@@ -10,11 +10,11 @@ class ConsoleApp;
 class SentimentAnalyzer
 {
 public:
-    HashTable *wordEntries;
-    TrieTree *preffixes;
+    HashTable                       *wordEntries;
+    TrieTree                        *preffixes;
     std::unordered_set<std::string> stopWords;
-    CommentClassifier* classifier;
-    Ranking ranking;
+    CommentClassifier*              classifier;
+    Ranking                         ranking;
 
     /* points back to the application that owns this object */
     ConsoleApp *backPointer;
@@ -36,6 +36,7 @@ public:
 
     /* returns a pointer to a word's entry */
     WordEntry* GetWordEntry(std::string word);
+
     /* returns the sentiment score for a word */
     double GetCommentScore(std::string comment, int method);    
 

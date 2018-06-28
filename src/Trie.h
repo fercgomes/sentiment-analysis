@@ -11,8 +11,8 @@ constexpr int alphabetSize = 26;
 class TrieNode
 {
 public:
-    TrieNode *children[alphabetSize];
-    bool isEndOfWord;
+    TrieNode    *children[alphabetSize];
+    bool        isEndOfWord;
 
     TrieNode();
     ~TrieNode();
@@ -39,7 +39,7 @@ private:
     bool findPreffix(std::string key, std::list<std::string>& target);
     void getPreffixesCrawler(TrieNode* subRoot, std::string key, std::list<std::string>& target);
 
-    static int getCharPosition(char c);
+    static int  getCharPosition(char c);
     static char getCharFromPosition(std::size_t pos);
-    bool validWord(std::string word);
+    bool        validWord(std::string word);
 };

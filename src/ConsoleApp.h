@@ -51,13 +51,12 @@ private:
 
     /* user integer selection at (x, y) */
     /* lower and upper bounds are inclusive */
-    int UserIntegerSelect(int y, int x, int lowerBound, int upperBound);
+    int     UserIntegerSelect(int y, int x, int lowerBound, int upperBound);
 
-    int MoveCursor(int y, int x, int options, int yInit);
-    void LoadFile(const char* path);
+    int     MoveCursor(int y, int x, int options, int yInit);
+    void    LoadFile(const char* path);
 
     /* an interface for the kaggle challenge
        input: kaggle input file */
-    void KaggleChallenge(std::string path, int method);
-
+    void    KaggleChallenge(std::string path, int method);
 };

@@ -7,9 +7,9 @@
 class CommentEntry
 {
 public:
-    int commentID;
-    double commentScore;
-    std::list<std::size_t> ocurrences;
+    int                     commentID;
+    double                  commentScore;
+    std::list<std::size_t>  ocurrences;
 
     CommentEntry(int id, int offset, double commentScore);
 
@@ -20,19 +20,20 @@ public:
 class WordEntry
 {
 public:
-    std::string word;
-    double averageScore;
-    double standardDeviation;
-    unsigned int count;
-    std::list<CommentEntry> invertedFile;
-    std::list<CommentEntry>::iterator currentDocument;
-    bool empty;
+    std::string                         word;
+    double                              averageScore;
+    double                              standardDeviation;
+    unsigned int                        count;
+    std::list<CommentEntry>             invertedFile;
+    std::list<CommentEntry>::iterator   currentDocument;
+    bool                                empty;
 
     WordEntry(std::string word);
 
     void AddOcurrence(int commentID, int commentOffset, double commentScore);
     void UpdateSandardDeviation();
     void PrintOcurrences();
+
     std::list<CommentEntry> GetInvertFile(int filter);
 
     /* pretty printing on stdout */

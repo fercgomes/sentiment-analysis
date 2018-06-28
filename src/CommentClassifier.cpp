@@ -225,7 +225,7 @@ double CommentClassifier::FilteredMean(std::string comment)
         wEntry = wordEntries->search(word);
         if(wEntry != nullptr && wEntry->count > minOcur && wEntry->standardDeviation < maxStdDev)
         {
-            /* word has a score */
+            /* word has a consistent rating, make it worth more */
             wordScore = wEntry->averageScore * 7.0f;
 
             total += wordScore;
@@ -233,7 +233,7 @@ double CommentClassifier::FilteredMean(std::string comment)
         }
         else if(wEntry != nullptr)
         {
-            /* word has a score */
+            /* use regular score */
             wordScore = wEntry->averageScore;
 
             total += wordScore;
@@ -241,7 +241,7 @@ double CommentClassifier::FilteredMean(std::string comment)
         }
         else
         {
-            /* word has a score */
+            /* no entry, make it neutral */
             wordScore = 2.0f;
 
             total += wordScore;
